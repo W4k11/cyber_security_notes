@@ -1,123 +1,194 @@
-powershell e erişmek için cmd açıp ```powershell``` yazmak yeterlidir.
+Markdown
 
-```Get-Content```: Dosyanın içeriğini alır ve konsolda kontrol eder.
-```Set-Location```: Çalışma dizinini değiştirir (ayarlar).
+# PowerShell Temel Komutları ve Cheat Sheet
+---
 
-Tüm fonksiyon ve cmdlet leri sıralamak için ```Get-Command``` yazmak yeterlidir.
+# PowerShell Temelleri
 
-Komut listesini filtreleme:
-çıktıda 3 sütun var.
+PowerShell'e erişmek için **CMD** (`cmd.exe`) veya **Çalıştır** (`Win + R`) penceresine `powershell` yazmak yeterlidir.
+
+> [!tip] Cmdlet Mantığı
+> PowerShell komutları genellikle `Fiil-İsim` (*Verb-Noun*) yapısındadır (Örn: `Get-Process`, `Set-Location`). Bash/Linux komutlarının çoğuna karşılık gelen yerleşik alias'lar (takma adlar) bulunur.
+
+---
+
+## 🧭 Yardım ve Komut Keşfi
+
+### Tüm Komutları Listeleme
 ```powershell
-Get-Command Name Version Source                                                    
+Get-Command
+````
+
+### Komut Türüne Göre Filtreleme
+
+Çıktı varsayılan olarak `CommandType`, `Name`, `Version` ve `Source` sütunlarını gösterir. Yalnızca belirli türdeki komutları (örn. `cmdlet`) listelemek için:
+
+PowerShell
+
+```
+Get-Command -CommandType "Cmdlet"
 ```
 
-örneğin commandType a göre filtrelemek istiyorum
+### Yardım Alma
 
-Get-Command -CommandType "cmdlet"
+Bir cmdlet'in parametrelerini ve ne işe yaradığını görmek için:
 
-Eğer bu komutların ne işe yaradığına bakmak istiyorsak
+PowerShell
 
-```powershell
-Get-Help komut_ismi
+```
+Get-Help <komut_ismi>
+Get-Help Get-Process -Detailed
+Get-Help Get-Process -Examples
 ```
 
+## 📁 Dosya ve Dizin İşlemleri
 
-##### Dizin
+|**PowerShell Cmdlet**|**Linux / CMD Karşılığı**|**Açıklama**|
+|---|---|---|
+|`Get-ChildItem`|`ls` / `dir`|Dizin içeriğini listeler|
+|`Set-Location`|`cd`|Çalışma dizinini değiştirir|
+|`New-Item`|`mkdir` / `touch`|Yeni dosya veya klasör oluşturur|
+|`Remove-Item`|`rm` / `del`|Dosya veya klasör siler|
+|`Copy-Item`|`cp` / `copy`|Dosya/klasör kopyalar|
+|`Move-Item`|`mv` / `move`|Dosya/klasör taşır|
+|`Get-Content`|`cat` / `type`|Dosya içeriğini okur|
 
-```powershell
-Get-ChildItem
+### Dizin Değiştirme
+
+PowerShell
+
 ```
-Bulunduğun dizindeki dosya ve dizinleri listeler.
-
-```powershell
-Set-Location -Path ".\dizin adı"
-```
-Change directory
-
-
-```powershell
-New-Item -Path ".\dizin1\yeniDizinAdı" -ItemType "Directory"
+Set-Location -Path ".\dizin_adi"
 ```
 
-```powershell
+### Yeni Klasör Oluşturma
+
+PowerShell
+
+```
+New-Item -Path ".\dizin1\yeniDizinAdi" -ItemType "Directory"
+```
+
+### Dosya Silme
+
+PowerShell
+
+```
 Remove-Item -Path ".\captain-cabin\captain-wardrobe\captain-boots.txt"
 ```
-rm
 
-```powershell
-Copy-Item -Path ".\lodur\lo1.txt" -Destination ".\user\lo2.txt"
+### Kopyalama ve Taşıma
+
+PowerShell
+
 ```
-Copy-Item (kopyala) ve Move-Item (taşı) komutlarını kullanarak dosyaları ve dizinleri kopyalayabilir veya taşıyabiliriz.
+# Kopyalama
+Copy-Item -Path ".\lodur\lo1.txt" -Destination ".\user\lo2.txt"
 
-```powershell
+# Taşıma
+Move-Item -Path ".\lodur\lo1.txt" -Destination ".\user\lo1.txt"
+```
+
+### Dosya İçeriği Okuma
+
+PowerShell
+
+```
 Get-Content -Path ".\lodur\lo1.txt"
 ```
-cat
 
-```powershell
+## 🔍 Filtreleme, Sıralama ve Arama (Pipeline)
+
+### Boyuta Göre Sıralama
+
+Dosyaları dosya boyutuna (`Length`) göre küçükten büyüğe listeler:
+
+PowerShell
+
+```
 Get-ChildItem | Sort-Object Length
 ```
-ls komutu ama dosyaları içeriğinin büyüklüğüne göre listeler.
 
+### Uzantıya Göre Filtreleme
 
-```powershell
+Yalnızca `.txt` uzantılı dosyaları listeler:
+
+PowerShell
+
+```
 Get-ChildItem | Where-Object -Property "Extension" -eq ".txt"
 ```
 
-txt dosyalarını listeler
+### İsim Deseni ile Filtreleme
 
-```powershell
-Get-ChildItem | Where-Object -Property "Name" -eq "lo*"
+`lo` ile başlayan dosyaları listeler:
+
+PowerShell
+
 ```
-"lo" ile başlayan dosya isimlerine göre listeler.
+Get-ChildItem | Where-Object -Property "Name" -like "lo*"
+```
 
-```powershell
+### Dosya İçinde Metin Arama (`grep` dengi)
+
+Dosya içindeki belirli bir deseni içeren satırları getirir:
+
+PowerShell
+
+```
 Select-String -Path ".\lodur.txt" -Pattern "lo"
 ```
-"lo" içeren satırları getirir.
 
-```powershell
+## ⚙️ Sistem ve Kullanıcı Bilgisi Toplama
+
+### Donanım ve İşletim Sistemi Özeti
+
+OS sürümü, BIOS ve donanım detaylarını verir:
+
+PowerShell
+
+```
 Get-ComputerInfo
 ```
-OS, BIOS, Donanım bilgilerini verir.
 
-```powershell
+### Yerel Kullanıcıları Listeleme
+
+Bilgisayarda kayıtlı yerel kullanıcı hesaplarını listeler:
+
+PowerShell
+
+```
 Get-LocalUser
 ```
-Bilgisayardaki kayıtlı kullanıcıları listeler.
 
-```powershell
-Get-NetIPConfiguration
+### Süreçleri (Process) Listeleme
+
+Çalışan işlemleri, CPU ve bellek (RAM) kullanımlarıyla birlikte listeler:
+
+PowerShell
+
 ```
-IP, DNS sunucuları, ve gateway configlerini verir.
-
-```powershell
-Get-NetIPAddress
-```
-etkin olmayan IP ler dahil tüm IP leri listeler.
-
-```powershell
 Get-Process
 ```
-Bilgisayardaki işlemleri verir. CPU RAM gibi kaynak kullanımlarını ayrıntılı olarak verir.
 
-```powershell
+### Hizmetleri (Services) Listeleme
+
+Sistemdeki servislerin durumlarını (`Running`, `Stopped`) listeler:
+
+PowerShell
+
+```
 Get-Service
 ```
-Bilgisayardaki hizmetleri listeler.
 
-```powershell
-Get-NetTCPConnection
+## 🌐 Ağ (Network) Analizi
+
+### Temel IP Yapılandırması
+
+Aktif arabirimlerin IP, alt ağ maskesi, varsayılan ağ geçidi ve DNS bilgilerini listeler:
+
+PowerShell
+
 ```
-Bilgisayardaki aktif ağ bağlantılarını listeler.
-
-```powershell
-Get-FileHash -Path .\lodur\lo.txt
+Get-NetIPConfiguration
 ```
-Dosyadaki hash karmalarını verir.
-
-```powershell
-Get-Item -Path "C:\lodur\lo.txt" -Stream  *
-```
-Dosya bağlantılarını verir.
-

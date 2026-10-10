@@ -1,30 +1,88 @@
-##### Cloud faydaları:
-- **Ölçeklenebilirlik:** Uygulamanızın ihtiyaçları değiştikçe kolayca ölçeklendirme yapabilirsiniz.
-- **İsteğe bağlı self-servis:** Donanım beklemenize gerek kalmadan sunucuları ve depolama alanlarını anında oluşturun veya kaldırın.
-- **Sadece kullandığınız kadar ödeyin:** Ücretlendirme, peşin ödeme yerine kullanıma göre yapılır.
-- **Güvenlik:** Bulut sağlayıcıları, altyapıyı güçlü güvenlik önlemleriyle korur.
-- **Yüksek kullanılabilirlik:** Sistemde bir arıza meydana gelse bile uygulamalar çalışmaya devam eder.
-- **Küresel erişim:** Uygulamanıza dünyanın her yerinden kullanıcılar erişebilir.
+# Bulut Bilişim (Cloud Computing) Temelleri
 
-##### Cloud türleri:
-- Public Cloud: Uygun fiyatlı, ölçeklendirilmesi kolay ve altyapı yönetimi gerektirmediği için yeni kurulan şirketler, web siteleri ve küresel uygulamalar tarafından kullanılır. Genel bulut hizmetleri neredeyse her kullanım senaryosu için tercih edilir.
+## 1. Bulut Bilişimin Temel Faydaları
 
-- Private Cloud: Bankalar, sağlık kuruluşları ve devlet kurumları tarafından hassas veriler için daha fazla kontrol, özelleştirme ve uyumluluk sağladığı için kullanılır.
+Bulut bilişim, kendi sunucularınızı fiziksel bir odada barındırmak yerine bilgi işlem gücünü internet üzerinden kiralama modelidir.
 
+- **Ölçeklenebilirlik (Scalability):** Kullanıcı sayısı aniden fırladığında kaynakları saniyeler içinde artırabilir, talep düştüğünde gereksiz maliyetleri kısmak için küçültebilirsiniz.
+    
+- **İsteğe Bağlı Self-Servis (On-Demand Self-Service):** Donanım satın alma, kargolama veya montaj beklemeden bir tıkla yeni sunucu ve depolama alanı açabilir ya da kapatabilirsiniz.
+    
+- **Kullandıkça Öde (Pay-As-You-Go):** Yüksek başlangıç yatırımı yerine yalnızca tükettiğiniz saat, bant genişliği veya depolama alanı kadar ödeme yaparsınız.
+    
+- **Güvenlik (Security):** Bulut sağlayıcıları fiziksel tesis güvenliği, DDoS koruması ve güncel yamaları profesyonel güvenlik ekipleriyle sağlar.
+    
+- **Yüksek Erişilebilirlik (High Availability):** Veri merkezlerinden birinde fiziksel bir arıza olsa dahi sistemleriniz yedekli sunucular üzerinden kesintisiz çalışmaya devam eder.
+    
+- **Küresel Erişim (Global Reach):** Uygulamalarınızı dünyanın dört bir yanındaki veri merkezlerine yayarak kullanıcılara en yakın noktadan düşük gecikmeyle hizmet verebilirsiniz.
+    
 
-- Hybrid Cloud: Hassas verileri gizli tutarken aynı zamanda yüksek talep dönemlerinde halka açık olarak ölçeklenebilmesi gereken e-ticaret platformları gibi şirketler tarafından kullanılır.
+## 2. Dağıtım Türleri (Deployment Models)
 
-##### Cloud hizmeti modelleri
-**Infrastructure as a Service (IaaS):** Sanal sunucular, depolama ve ağ gibi temel bilgi işlem kaynaklarını kiralarsınız. İşletim sistemini ve uygulamanızı yönetmek sizin sorumluluğunuzdadır, sağlayıcı ise fiziksel donanımı yönetir.
+|**Model**|**Ne Anlama Gelir?**|**En Yaygın Kullanım Alanı**|
+|---|---|---|
+|**Public Cloud (Genel Bulut)**|Kaynaklar sağlayıcıya aittir ve birden fazla müşteri tarafından paylaşılır. Maliyeti düşüktür, altyapı bakımı gerekmez.|Girişimler (start-up'lar), bloglar, e-ticaret siteleri ve genel web uygulamaları.|
+|**Private Cloud (Özel Bulut)**|Altyapı tamamen tek bir kuruluşa tahsis edilmiştir. En üst düzey kontrol, izolasyon ve yasal uyumluluk sağlar.|Bankalar, savunma sanayii, sağlık kuruluşları ve regülasyona tabi kamu kurumları.|
+|**Hybrid Cloud (Hibrit Bulut)**|Public ve Private bulutun birleşimidir. Kritik veriler özel alanda tutulurken, ani yük artışları genel buluta aktarılır.|Kritik müşteri verisini şirket içinde tutup kampanya dönemlerindeki web trafiğini genel bulutta karşılayan büyük e-ticaret platformları.|
 
-**Platform as a Service (PaaS):** Bulut sağlayıcısı altyapıyı ve işletim sistemini yönetir. Siz sunucularla uğraşmak zorunda kalmadan uygulamanızı oluşturmaya, dağıtmaya ve çalıştırmaya odaklanabilirsiniz.
+## 3. Bulut Hizmet Modelleri (IaaS, PaaS, SaaS)
 
-**Software as a Service (SaaS):** **İnternet üzerinden eksiksiz bir uygulama kullanıyorsunuz. Sağlayıcı her şeyi yönetiyor ve siz de** yazılıma bir tarayıcı veya uygulama (örneğin Gmail veya Zoom) aracılığıyla erişiyorsunuz.
+Bulut modelleri, sağlayıcının ne kadarını yönettiğine ve sizin ne kadarından sorumlu olduğunuza göre ayrılır:
 
+Plaintext
 
-örn:
-- **Microsoft Azure:** Özellikle kurumsal ve hibrit bulut ortamlarında güçlü bir rakip.
-- **Google Cloud Platform (GCP):** Güçlü veri analitiğiyle tanınır, AI ve makine öğrenimi araçları.
-- **Alibaba Cloud:** Asya'da önemli bir oyuncu olup, küresel ölçekte rekabetçi bulut hizmetleri sunmaktadır.
-- **IBM Cloud:** Hibrit bulut ve bulut teknolojilerine odaklanıyor. AI İşletmeler için odaklı çözümler.
-- **Oracle Cloud:** Kurumsal uygulamalara ve veritabanlarına odaklanır.
+```
+Sorumluluk Dağılımı:
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│     IaaS     │     │     PaaS     │     │     SaaS     │
+├──────────────┤     ├──────────────┤     ├──────────────┤
+│ Uygulama     │     │ Uygulama     │     │              │
+│ Veri         │     │ Veri         │     │ Her Şeyi     │
+│ İşletim Sis. │     ├──────────────┤     │ Sağlayıcı    │
+├──────────────┤     │ İşletim Sis. │     │ Yönetir      │
+│ Sanallaştırma│     │ Sanallaştırma│     │ (Kullanıcı   │
+│ Donanım/Ağ   │     │ Donanım/Ağ   │     │ sadece aracı │
+│ (Sağlayıcı)  │     │ (Sağlayıcı)  │     │ kullanır)    │
+└──────────────┘     └──────────────┘     └──────────────┘
+```
+
+### A) IaaS (Infrastructure as a Service - Altyapı Hizmeti)
+
+- **Mantık:** Sağlayıcıdan "boş bir sanal makine, disk ve ağ" kiralarsınız.
+    
+- **Sorumluluk:** Fiziksel donanım sağlayıcıdadır; işletim sistemi kurulumu, yamalar, güvenlik ayarları ve uygulamanın bakımı sizdedir.
+    
+- **Örnek:** AWS EC2, Azure Virtual Machines, DigitalOcean Droplets.
+    
+
+### B) PaaS (Platform as a Service - Platform Hizmeti)
+
+- **Mantık:** Sunucu yönetimi, işletim sistemi ve çalışma ortamı (runtime) sağlayıcı tarafından hazır sunulur. Siz yalnızca kodunuzu yazar ve yüklersiniz.
+    
+- **Sorumluluk:** Sunucu yapılandırmasıyla uğraşmazsınız; yalnızca uygulamanızdan ve verilerinizden sorumlusunuzdur.
+    
+- **Örnek:** Heroku, Google App Engine, AWS Elastic Beanstalk.
+    
+
+### C) SaaS (Software as a Service - Yazılım Hizmeti)
+
+- **Mantık:** İnternet üzerinden doğrudan çalışan eksiksiz bir yazılımdır.
+    
+- **Sorumluluk:** Altyapı, kod ve güncellemeler tamamen sağlayıcıya aittir. Kullanıcı yalnızca tarayıcıdan veya istemciden giriş yapar.
+    
+- **Örnek:** Gmail, Zoom, Microsoft 365, Google Drive.
+    
+
+## 4. Popüler Bulut Sağlayıcıları ve Öne Çıkan Güçlü Yönleri
+
+- **Microsoft Azure:** Windows ekosistemi, Active Directory entegrasyonu ve kurumsal hibrit altyapılarda pazar liderlerindendir.
+    
+- **Google Cloud Platform (GCP):** Büyük veri analitiği, Kubernetes, yapay zekâ ve makine öğrenimi alanlarında son derece güçlüdür.
+    
+- **AWS (Amazon Web Services):** En geniş ürün yelpazesine, en büyük küresel pazar payına ve olgun topluluk desteğine sahip öncü sağlayıcıdır.
+    
+- **Alibaba Cloud:** Asya-Pasifik bölgesinde pazar lideridir; özellikle Uzak Doğu odaklı küresel projeler için uygun maliyetli çözümler sunar.
+    
+- **IBM Cloud:** Kurumsal şirketlerin hibrit bulut geçişlerine, regülasyon uyumluluğuna ve kurumsal AI çözümlerine odaklanır.
+    
+- **Oracle Cloud (OCI):** Büyük kurumsal veritabanları (Oracle DB), yüksek performanslı hesaplama ve ERP altyapıları için optimize edilmiştir.

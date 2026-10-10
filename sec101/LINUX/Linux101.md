@@ -1,97 +1,115 @@
-Commands:
+# Linux 101: Temel Komutlar ve Shell Operatörleri
 
-echo: yanına ne yazdıysan onun çıktısını verir örneğin:
-```
-tryhackme@linux1:~$ echo Hello
-Hello
-tryhackme@linux1:~$ echo "Hello Friend!"
-Hello Friend!
-```
+## 1. Temel Sistem Komutları
 
-whoami: Oturumda hangi kullanıcının oturum açtığını gösterir.
+- **`echo`**: Belirtilen metni standart çıktıya (terminale) basar.
+    
+    Bash
+    
+    ```
+    tryhackme@linux1:~$ echo Hello
+    Hello
+    tryhackme@linux1:~$ echo "Hello Friend!"
+    Hello Friend!
+    ```
+    
+- **`whoami`**: Mevcut kabuk oturumunu çalıştıran aktif kullanıcının adını döner.
+    
+    Bash
+    
+    ```
+    tryhackme@linux1:~$ whoami
+    root
+    ```
+    
+
+## 2. Dosya Sistemiyle Etkileşim (Interacting with Filesystem)
+
+|Komut|Açıklama|
+|---|---|
+|`pwd`|_Print Working Directory_ — Bulunulan mevcut mutlak dizin yolunu gösterir.|
+|`ls`|Dizin içeriğini (dosya ve alt klasörleri) listeler.|
+|`cd`|_Change Directory_ — Çalışma dizinini değiştirir.|
+|`cat`|_Concatenate_ — Dosya içeriğini terminale yazdırır veya dosyaları birleştirir.|
+
+### Örnek Terminal Akışı
+
+Bash
 
 ```
-tryhackme@linux1:~$ whoami
-root
-```
-
-#### Intracting Filesystem
-ls -> listeleme
-cd -> dizin değiştirme
-cat -> dosya okuma
-pwd -> çalıştığın dizini ve alt dizinleri gösterme
-
-```
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ ls
+# 1. Mevcut dizindeki dosyaları listele
+k4d1r@DESKTOP-AGAM3GQ:~$ ls
 lodur.txt
 
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ cd ..
+# 2. Bir üst dizine çık
+k4d1r@DESKTOP-AGAM3GQ:~$ cd ..
 
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[/home]
-└─$ cd k4d1r/
+# 3. Belirtilen kullanıcı ev dizinine dön
+k4d1r@DESKTOP-AGAM3GQ:/home$ cd k4d1r/
 
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ cat lodur.txt
+# 4. Dosya içeriğini oku
+k4d1r@DESKTOP-AGAM3GQ:~$ cat lodur.txt
 lodurlo
 
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ pwd
+# 5. Aktif dizin yolunu doğrula
+k4d1r@DESKTOP-AGAM3GQ:~$ pwd
 /home/k4d1r
-
 ```
 
-### Searching for Files
+## 3. Dosya ve İçerik Arama (Searching for Files)
 
-find: dosyayı hangi dizinde olduğunu gösterme. find -name "*.txt"
+### `find` (Dosya Arama)
 
-grep: bir dosyanın içerisindeki içeriği aramak için kullanılır.
+Belirtilen kriterlere göre dosya sisteminde dosya ve dizin arar.
+
+Bash
+
 ```
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ grep "lo" lodur.txt
+# Bulunulan dizin ve alt dizinlerde uzantısı .txt olanları bul
+find -name "*.txt"
+
+# Belirli bir dizinde arama yapmak için:
+find /home/k4d1r -name "*.txt"
+```
+
+### `grep` (İçerik Arama)
+
+Dosya veya veri akışları içerisinde metin kalıplarını filtreler.
+
+Bash
+
+```
+# Tek bir dosya içinde arama yapma
+k4d1r@DESKTOP-AGAM3GQ:~$ grep "lo" lodur.txt
 lodurlo
-```
 
-grep ile recursive arama
-
-tek tek dosyalara bakmak yerine belirlenen dizinde arama yapmak.
-```
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ grep -R "lodur" /home/k4d1r
+# Belirtilen dizinde özyinelemeli (recursive) arama yapma (-R)
+k4d1r@DESKTOP-AGAM3GQ:~$ grep -R "lodur" /home/k4d1r
 /home/k4d1r/lodur.txt:lodurlo
 ```
 
-### Shell Operators
+## 4. Shell Operatörleri ve Çıktı Yönlendirme
 
-"&" : Bu operatör, terminalinizin arka planında komutlar çalıştırmanıza olanak tanır. Büyük dosyalarda iş yapar bence...
+|Operatör|İşlev|Davranış Mantığı|
+|---|---|---|
+|`&`|Arka Plan (_Background_)|Komutu arka planda çalıştırır; terminali hemen bir sonraki girdi için boşa çıkarır.|
+|`&&`|Mantıksal VE (_AND_)|Solundaki komut başarıyla (`exit code 0`) tamamlanırsa sağındaki komutu çalıştırır.|
+|`>`|Yönlendirme (_Overwrite_)|Standart çıktıyı hedef dosyaya yazar; hedef dosya varsa **üzerine yazar** (_truncate_).|
+|`>>`|Ekleme (_Append_)|Standart çıktıyı hedef dosyanın sonuna ekler; mevcut veriyi silmez.|
 
-"&&" : Bu operatör, terminalinizde birden fazla komutu tek bir satırda birleştirmenizi sağlar. kodların hepsi başarılı olursa çalışır.
+### Yönlendirme Örnekleri
 
-">" : Bu operatör bir yönlendiricidir; yani bir komutun çıktısını (örneğin cat kullanarak bir dosyaya çıktı almak gibi) alıp başka bir yere yönlendirebiliriz.
+Bash
 
 ```
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ echo hey > welcome
-
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ cat welcome
+# 1. 'welcome' dosyasını oluştur ve içeriğe yaz (önceki veri silinir)
+k4d1r@DESKTOP-AGAM3GQ:~$ echo hey > welcome
+k4d1r@DESKTOP-AGAM3GQ:~$ cat welcome
 hey
 
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ ls
-lodur.txt  welcome
-```
-
-">>" : Bu operatör, > operatörünün yaptığı aynı işlevi görür ancak çıktıyı değiştirmek yerine ekler (yani hiçbir şey üzerine yazılmaz).
-
-```
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ echo lodur >> welcome
-
-┌──(k4d1r㉿DESKTOP-AGAM3GQ)-[~]
-└─$ cat welcome
+# 2. 'welcome' dosyasına yeni satır ekle (üzerine yazmaz)
+k4d1r@DESKTOP-AGAM3GQ:~$ echo lodur >> welcome
+k4d1r@DESKTOP-AGAM3GQ:~$ cat welcome
 hey
-lo
 lodur
 ```

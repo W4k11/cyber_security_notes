@@ -1,18 +1,49 @@
-Windows klasörü (C:\Windows), geleneksel olarak Windows işletim sistemini içeren klasör olarak bilinir. Klasörün mutlaka C sürücüsünde bulunması gerekmez.
+# Windows Ortam ve Kullanıcı Mimarisi
 
-Başka herhangi bir sürücüde ve teknik olarak farklı bir klasörde de bulunabilir. İşte bu noktada ortam değişkenleri, daha doğrusu sistem ortam değişkenleri devreye giriyor.
+## 📁 Windows Dizini ve Değişken Mantığı
 
-``Henüz ele alınmamış olsa da, Windows dizini için sistem ortam değişkeni %windir%'dir.
+Geleneksel olarak Windows işletim sistemi dosyaları `C:\Windows` dizininde konumlanır. Ancak sistemin mutlaka `C:` sürücüsünde veya `Windows` adında bir dizinde yer alması zorunlu değildir.
 
-"Ortam değişkenleri, işletim sistemi ortamı hakkında bilgi depolar. Bu bilgiler, işletim sistemi yolu, işletim sistemi tarafından kullanılan işlemci sayısı ve geçici klasörlerin konumu gibi ayrıntıları içerir."
+Farklı sürücü ve dizin yapılandırmalarında yazılımların çekirdek dosyalara sorunsuz erişebilmesi için **Sistem Ortam Değişkenleri (System Environment Variables)** kullanılır.
 
+> [!info] Ortam Değişkeni (Environment Variable) Nedir?
+> İşletim sisteminin çalışma ortamı hakkında dinamik bilgiler depolayan değişkenlerdir. İşletim sistemi yolu, işlemci mimarisi, geçici klasör konumları (`%TEMP%`) ve kullanıcı profil yolları (`%USERPROFILE%`) bu değişkenlerde tutulur.
 
-Windowsta 2 kullanıcı türü vardır:
-Standart
-Yönetici
+### Temel Sistem Değişkeni: `%windir%`
+* Windows çekirdek dizinini dinamik olarak işaret eder.
+* Sistem ister `C:\Windows` ister `D:\WinOS` altında kurulu olsun, betikler veya komutlar `%windir%` çağrısıyla doğrudan doğru dizine yönlenir.
+* **PowerShell Karşılığı:** `$env:windir` veya `$env:SystemRoot`
 
-- Bir yönetici sistemde değişiklikler yapabilir: kullanıcı ekleyebilir, kullanıcıları silebilir, grupları değiştirebilir, sistem ayarlarını değiştirebilir vb. 
-- Standart bir kullanıcı yalnızca kendisine atanmış klasörlerde/dosyalarda değişiklik yapabilir ve program yükleme gibi sistem düzeyinde değişiklikler gerçekleştiremez.
-Sistemde kaç kullanıcı var görmek için:
+---
 
-arama yerine "diğer kullanıcılar" yazmak yeterli
+## 👥 Windows Kullanıcı Hesap Türleri
+
+Windows temel olarak iki ana yerel kullanıcı türü sunar:
+
+| Hesap Türü | Yetki Seviyesi | Yapabileceği İşlemler | Kısıtlamalar |
+| :--- | :--- | :--- | :--- |
+| **Yönetici (Administrator)** | Tam Denetim (`Full Access`) | • Kullanıcı ekleme/silme<br>• Grup ilkelerini düzenleme<br>• Sürücü/yazılım yükleme<br>• Sistem ayarlarını değiştirme | Yok (UAC onayı ile yürütülür) |
+| **Standart Kullanıcı** | Kısıtlı Erişim | • Kendisine tahsis edilen dosya/klasörleri yönetme<br>• Yetkilendirilmiş uygulamaları çalıştırma | • Sistem genelinde değişiklik yapamaz<br>• Yeni program yükleyemez<br>• Diğer kullanıcıların verilerine erişemez |
+
+---
+
+## 🔍 Sistemdeki Kullanıcıları İnceleme Yöntemleri
+
+### 1. Grafiksel Arayüz (GUI)
+* Başlat arama çubuğuna **"Diğer kullanıcılar"** (*Other users*) yazılarak Ayarlar menüsünden mevcut kullanıcılar listelenebilir.
+* Alternatif olarak `Win + R` penceresine `lusrmgr.msc` yazılarak **Yerel Kullanıcılar ve Gruplar** paneli açılabilir.
+
+### 2. Komut Satırı (CLI)
+
+**PowerShell ile:**
+```powershell
+Get-LocalUser
+````
+
+**CMD ile:**
+
+DOS
+
+```
+net user
+```

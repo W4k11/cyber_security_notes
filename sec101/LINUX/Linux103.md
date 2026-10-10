@@ -1,83 +1,169 @@
-## Linux metin düzenleyicileri
+# Linux 103: Editörler, Dosya Transferi, Süreç Yönetimi ve Görev Planlama
 
-echo ve pipe operatörleri: echo > , echo >>
+## 1. Metin Düzenleyicileri (Text Editors)
 
-nano ve vim
+- **`echo` ve Yönlendirme:** Terminalden doğrudan dosya oluşturmak veya ekleme yapmak için kullanılır:
+    
+    - `echo "metin" > dosya.txt` (Mevcut içeriği siler, üzerine yazar)
+        
+    - `echo "metin" >> dosya.txt` (Mevcut içeriği korur, son satıra ekler)
+        
+- **`nano`:** Yeni başlayanlar için uygun, klavye kısayolları (`Ctrl + O` kaydet, `Ctrl + X` çık) alt kısımda listelenen basit terminal editörüdür:
+    
+    Bash
+    
+    ```
+    nano dosya.txt
+    ```
+    
+- **`vim`:** Mod tabanlı (Normal mod, Insert modu `:w`, `:q!` komutları) gelişmiş ve kaynak tüketimi düşük terminal editörüdür:
+    
+    Bash
+    
+    ```
+    vim dosya.txt
+    ```
+    
 
-nano dosya.txt
+## 2. Ağ Üzerinden Dosya Transferi
 
-vim dosya.txt
+### `wget` ile Web Üzerinden İndirme
 
-## Linuxta Kullanışlı Araçlar
+HTTP, HTTPS ve FTP protokolleri üzerinden uzak sunuculardan dosya çekmek için kullanılır:
 
-wget: http üzerinden web den dosya indirmeyi sağlar.
-ÖRN:
-`wget https://assets.tryhackme.com/additional/linux-fundamentals/part3/myfile.txt`
+Bash
 
-hosta dosya paylaşma 
-SCP
+```
+wget https://assets.tryhackme.com/additional/linux-fundamentals/part3/myfile.txt
+```
 
-`scp important.txt ubuntu@192.168.1.30:/home/ubuntu/transferred.txt`
+### `scp` (Secure Copy Protocol) ile Güvenli Dosya Aktarımı
 
-WEB Sunucusunda Dosya Sunma
+SSH altyapısını kullanarak yerel makine ile uzak sunucu arasında şifreli dosya aktarımı yapar:
 
-python3 -m http.server
+Bash
 
-## İşlemler 101
+```
+# Yereldeki bir dosyayı uzak sunucuya gönderme:
+scp important.txt ubuntu@192.168.1.30:/home/ubuntu/transferred.txt
 
-İşlemler, makinenizde çalışan programlardır. Çekirdek tarafından yönetilirler ve her işlemin kendisine atanmış bir kimliği (ID) vardır; bu kimlik aynı zamanda işlem adı olarak da bilinir. Bu kimlik, işlemin başlama sırasını artırır. Örneğin, 60. işlemin kimlik numarası 60 olacaktır.
+# Uzaktaki bir dosyayı yerel makineye çekme:
+scp ubuntu@192.168.1.30:/home/ubuntu/remote_file.txt ./
+```
 
-işlemleri görmek için: ps
-sistem işlemlerini görmek için: ps aux
-anlık işlemleri görmek için: top
-işlemleri sonlandırmak için: kill (PID)
+### Hızlı Geçici Web Sunucusu Başlatma (`python3`)
 
-### Bazı işlemi sonlandırma komutları:
-SIGTERM : İşlemi sonlandırın, ancak öncesinde bazı temizleme işlemlerini yapmasına izin verin.
-SIGKILL : İşlemi sonlandır - sonrasında herhangi bir temizleme işlemi yapmaz.
-SIGSTOP : Bir işlemi durdur/askıya al
+Bulunulan dizindeki dosyaları ağa açmak için tek satırlık pratik HTTP servisi oluşturur (varsayılan port `8000`):
 
-## Sistem Açılışında İşlemlerin/Hizmetlerin Başlatılmasını Sağlama
+Bash
 
-`systemctl [option] [service]`
+```
+python3 -m http.server 8000
+```
 
-Örn: `systemctl start apache2`
+## 3. Süreç (Process) Yönetimi
 
-options:
-start
-stop
-enable
-disable
-status
+İşlemler, Linux çekirdeği (Kernel) tarafından yönetilen ve bellekte koşan programlardır. Her işleme benzersiz bir Süreç Kimliği (**PID** - _Process ID_) atanır.
 
-# Linuxta planlama yapma
+### Süreçleri Görüntüleme
 
-Crontab, önyükleme sırasında başlatılan ve cron görevlerini kolaylaştırmak ve yönetmekten sorumlu olan süreçlerden biridir.
+|**Komut**|**Açıklama**|
+|---|---|
+|`ps`|O anki aktif terminal oturumuna bağlı süreçleri gösterir.|
+|`ps aux`|Sistem genelinde çalışan tüm süreçleri kullanıcı ve kaynak tüketimleriyle listeler.|
+|`top`|CPU ve RAM kullanımını gerçek zamanlı (canlı) olarak izletir (`q` ile çıkılır).|
 
-MIN -> Hangi dakikada çalıştırılcak
-HOUR -> Hangi saatte çalıştırılcak
-DOM -> Ayın hangi gününde çalıştırıcak
-MON -> Hangi ayda çalıştırıcak
-DOW -> Haftanın hangi gününde çalıştırılıcak
-CMD -> Yürütülcek komut
+### Süreçleri Sonlandırma (`kill` ve Sinyaller)
 
-Dosya yedekleme örneğini ele alalım. "cmnatic"in "Belgeler" klasörünü her 12 saatte bir yedeklemek isteyebilirsiniz. Bunun için aşağıdaki formatı kullanırız:
+Süreçleri durdurmak için çekirdeğe sinyaller (Signals) gönderilir:
+
+Bash
+
+```
+# Sözdizimi: kill -<SİNYAL> <PID>
+kill -9 1304
+```
+
+- **`SIGTERM` (Sinyal 15):** Standart sonlandırma isteğidir. Programın verileri kaydetmesine ve geçici dosyaları temizlemesine izin verir.
+    
+- **`SIGKILL` (Sinyal 9):** Süreci çekirdek seviyesinde anında ve zorla öldürür; temizleme işlemine izin vermez.
+    
+- **`SIGSTOP` (Sinyal 19):** Süreci dondurur/askıya alır (daha sonra `SIGCONT` ile devam ettirilebilir).
+    
+
+### Arka Plan ve Ön Plan Yönetimi
+
+- **`&` (Arka planda başlatma):** Komutun sonuna eklendiğinde terminali kilitlemeden arka planda çalıştırır:
+    
+    Bash
+    
+    ```
+    sleep 100 &
+    # [1] 3642 -> [İş Numarası] PID Numarası
+    ```
+    
+- **`jobs`:** Arka planda çalışan aktif işleri listeler.
+    
+- **`fg` (Foreground):** Arka plandaki bir işlemi tekrar terminalin önüne (ön plana) getirir.
+    
+- **`Ctrl + Z`:** Ön planda çalışan bir işlemi geçici olarak dondurup arka plana atar.
+    
+- **`bg`:** Askıya alınmış işlemi arka planda yürütmeye devam ettirir.
+    
+
+## 4. Servis Yönetimi (`systemd` / `systemctl`)
+
+İşletim sistemi servislerini (daemon) başlatmak, durdurmak ve sistem açılışına eklemek için `systemctl` kullanılır:
+
+Bash
+
+```
+# Servisi anlık olarak başlatma
+systemctl start apache2
+
+# Servisi anlık olarak durdurma
+systemctl stop apache2
+
+# Servisin durumunu kontrol etme
+systemctl status apache2
+
+# Sistemin her açılışında otomatik başlamasını sağlama
+systemctl enable apache2
+
+# Açılışta otomatik başlamasını iptal etme
+systemctl disable apache2
+```
+
+## 5. Görev Planlama (`cron` ve `crontab`)
+
+Sistemde belirli aralıklarla tekrarlanacak görevleri otomatikleştirmek için `cron` servisi kullanılır. Görev tablosunu açmak için:
+
+Bash
+
 ```
 crontab -e
-`0 */12 * * * cp -R /home/cmnatic/Documents /var/backups/`
 ```
 
-### Arka Planda İşlem Başlatma
+### Zamanlama Sözdizimi Anatomisi
+
+Plaintext
+
 ```
-tryhackme@linux3:~$ echo salam &
-[1] 3642
-tryhackme@linux3:~$ salam
-```
-```
-root@ip-10-114-119-206:~# ps
-    PID TTY          TIME CMD
-  18950 pts/1    00:00:00 bash
-  19069 pts/1    00:00:00 ps
+ *     *     *     *     *     <Çalıştırılacak Komut>
+ |     |     |     |     |
+ |     |     |     |     +---- Haftanın Günü (DOW: 0 - 6, 0 = Pazar)
+ |     |     |     +---------- Ay (MON: 1 - 12)
+ |     |     +---------------- Ayın Günü (DOM: 1 - 31)
+ |     +---------------------- Saat (HOUR: 0 - 23)
+ +---------------------------- Dakika (MIN: 0 - 59)
 ```
 
-arka plandaki işlemi durdurmak için: fg
+### Örnek Planlama
+
+`cmnatic` kullanıcısının `Documents` klasörünü her 12 saatte bir `/var/backups/` dizinine kopyalama:
+
+Plaintext
+
+```
+0 */12 * * * cp -R /home/cmnatic/Documents /var/backups/
+```

@@ -1,56 +1,100 @@
-OSI modelinin başlıca avantajlarından biri, cihazların bir ağ üzerinde farklı işlevlere ve tasarımlara sahip olup diğer cihazlarla iletişim kurabilmesidir. OSI modelinin tekdüzeliğine uyan bir ağ üzerinden gönderilen veriler, diğer cihazlar tarafından anlaşılabilir.
+# OSI Referans Modeli (Open Systems Interconnection)
 
-1. Fiziksel
-2. Veri Bağlantısı
-3. Ağ
-4. Taşıma
-5. Oturum
-6. Sunum
-7. Uygulama
+## 1. OSI Modeli Nedir ve Neden Kullanılır?
 
-### 1. Fiziksel Katman
-- Ethernet Kablosu var bu katmanda
-- Cihazlar binary(1-0) ile iletişim kurar
+Farklı üreticilere ait bilgisayarların, donanımların ve işletim sistemlerinin bir ağ üzerinde sorunsuz bir şekilde haberleşebilmesi için ISO tarafından geliştirilmiş **7 katmanlı standart bir mimaridir**.
 
-### 2. Veri Bağlantısı Katmanı
-- Verileri fiziksel katmandan alıp(uzak pc nin IP adreside dahil olmak üzere) MAC adresine ekler.
-- Onu tanımlamak için bir wifi card bulunudurur.
+- **Evrensel Uyumluluk:** Donanım veya yazılım nasıl tasarlanmış olursa olsun, OSI standartlarına uyan her cihaz birbiriyle konuşabilir.
+    
+- **Modüler Yapı:** Bir katmanda yapılan değişiklik veya geliştirme (örneğin kablonun fiber optikle değiştirilmesi), üst katmanlardaki yazılımları (örneğin tarayıcınızı) doğrudan etkilemez.
+    
 
+## 2. 7 Katmanın Özeti
 
-### 3. Ağ Katmanı
-Bu katmandaki bazı protokoller, verilerin bir cihaza ulaşmak için izlemesi gereken "en uygun" yolu tam olarak belirlerken, ağ modülünün bu aşamasında yalnızca bu protokollerin varlığından haberdar olmalıyız. Kısaca, bu protokoller arasında OSPF (Open Shortest Path First) ve RIP (Routing Information Protocol) yer almaktadır.
+Plaintext
 
-Hangi rotanın izleneceğine karar veren faktörler şunlardır:
-hız, kestirme ve güvenlik
-- En kısa yol hangisidir? Yani, paketin geçmesi gereken cihaz sayısı en az olan yol hangisidir? 
-- En güvenilir yol hangisi? Yani, o yolda daha önce paket kaybı yaşandı mı? 
-- Hangi yol daha hızlı fiziksel bağlantıya sahip? Yani bir yol bakır bağlantı (daha yavaş) kullanırken, diğer yol fiber optik bağlantı (önemli ölçüde daha hızlı) kullanıyor?
+```
+ Katman No   Katman Adı       Veri Birimi (PDU)   Temel Donanım / Örnek
+──────────────────────────────────────────────────────────────────────────
+ Katman 7    Uygulama         Veri (Data)         Tarayıcı, HTTP, DNS
+ Katman 6    Sunum            Veri (Data)         SSL/TLS, JPEG, ASCII
+ Katman 5    Oturum           Veri (Data)         NetBIOS, RPC
+ Katman 4    Taşıma           Segment / Datagram  TCP, UDP
+ Katman 3    Ağ               Paket (Packet)      Router, IP, ICMP
+ Katman 2    Veri Bağlantısı  Çerçeve (Frame)     Switch, MAC, NIC
+ Katman 1    Fiziksel         Bit (0 ve 1'ler)    Kablo, Hub, Sinyaller
+```
 
-### 4. Taşıma Katmanı
-Burda veri gönderirken bazı faktörlere bağlı olarak 2 prokolden biri seçilir:
+## 3. Katmanların Detaylı İncelemesi (Aşağıdan Yukarıya)
 
-TCP (Transmission Control Protocol)
-UDP (User Datagram Protocol)
+### Katman 1: Fiziksel Katman (Physical Layer)
 
-##### TCP
-- 3 yönlü handshake i vardır.
-- Güvenilir veri aktarımı yapar. (Akış kontrol, tıkanıklık kontrolü)
-- HTTP, POP3, IMAP ve SMTP gibi protokolleri kullanır.
-- Yavaştır ve bir veri karşıya ulaşmadığında tüm veri iptal olur.
-##### UDP
-Bağlantı kurulmasını gerektirmez. UDP, DNS gibi hızlı sorgulara dayanan protokoller ve sesli/görüntülü konferans ve yayın gibi gerçek zamanlı iletişime öncelik veren protokoller için uygundur.
-- Verinin karşıya tam bir şekilde ulaşıp ulaşmaması umrunda değil.
+Verinin saf elektriksel, optik veya radyo sinyallerine dönüştürülüp fiziksel ortam üzerinden aktarıldığı katmandır.
 
-### 5. Oturum Katmanı
-Veriler sunum katmanından (katman 6) doğru şekilde çevrildikten veya biçimlendirildikten sonra, oturum katmanı (katman 5), verilerin hedeflendiği diğer bilgisayarla bağlantıyı kurmaya ve sürdürmeye başlar.
-Bağlantı kurulduğunda oturum oluşturur ve aktif kaldıkça oturum devam eder.
-oturumlar benzersiz
-Aynı zamanda bağlantı aktif değilse bağlantıyı koparmaktanda sorumludur.
+- **Veri Tipi:** İkili sistemdeki bitler (`0` ve `1`ler).
+    
+- **Bileşenler:** Ethernet (Bakır/RJ45) kabloları, fiber optik kablolar, Wi-Fi radyo frekansları, hub'lar ve tekrarlayıcılar (repeater).
+    
 
-### 6. Sunum Katmanı
+### Katman 2: Veri Bağlantısı Katmanı (Data Link Layer)
 
-7.katmana gelen giden verileri çevirmen görevi görür.
+Aynı yerel ağda (LAN) bulunan iki donanım arasında hatasız veri aktarımından sorumludur.
 
+- **İşleyiş:** Ağ katmanından gelen paketleri alır, fiziksel donanım adreslerini (**MAC Adresi**) ekleyerek **çerçevelere (frame)** dönüştürür.
+    
+- **Bileşenler:** Ağ arayüz kartları (Ethernet/Wi-Fi NIC) ve Ağ Anahtarları (**Switch**).
+    
 
-### 7. Uygulama Katmanı
-Grafik Kullanıcı Arayüzü (GUI) sağlar. Diğer protokoller arasında, web sitesi adreslerinin IP adreslerine nasıl çevrildiğini açıklayan Alan Adı Sistemi (DNS) de bulunur.
+### Katman 3: Ağ Katmanı (Network Layer)
+
+Paketlerin farklı ağlar arasında kaynaktan hedefe en verimli rotadan ulaştırılmasını (**Routing / Yönlendirme**) sağlar.
+
+- **Temel Yapıtaşı:** Mantıksal adresleme yani **IP adresleridir**. Bu katmanın merkez cihazı **Router (Yönlendirici)**'dır.
+    
+- **En İyi Yol (Rota) Nasıl Seçilir?** Yönlendirme protokolleri (OSPF, RIP, BGP) şu kriterlere göre karar verir:
+    
+    - **Kestirme Yol (Mesafe / Hop Count):** Paketin geçeceği router sayısının azlığı.
+        
+    - **Hız ve Bant Genişliği:** Yolun bakır kablo mu yoksa yüksek hızlı fiber optik hat mı olduğu.
+        
+    - **Güvenilirlik ve Kalite:** Güzergâhta paket kaybı veya aşırı gecikme olup olmadığı.
+        
+
+### Katman 4: Taşıma Katmanı (Transport Layer)
+
+İki uç cihaz arasındaki uçtan uca veri akışının kurallarını belirler. İhtiyaca göre iki ana protokolden biri devreye girer:
+
+|**Kriter**|**TCP (Transmission Control Protocol)**|**UDP (User Datagram Protocol)**|
+|---|---|---|
+|**Bağlantı Türü**|Bağlantı odaklı (3 Yönlü El Sıkışma / Handshake şarttır)|Bağlantısız (Handshake yok, doğrudan gönderir)|
+|**Güvenilirlik**|**%100 Güvenilir:** Paket kaybolursa tekrar istenir, sıra kontrolü ve akış denetimi yapar.|**Güvenilirlik garantisi yok:** Paketin gidip gitmediği kontrol edilmez.|
+|**Hız**|Kontrol mekanizmaları nedeniyle daha yavaş|Ek kontrol başlıkları olmadığı için aşırı hızlı|
+|**Kullanım Alanları**|Veri kaybının kabul edilemeyeceği durumlar: HTTP/HTTPS, SSH, FTP, SMTP, IMAP|Hız ve anlık iletişimin önemli olduğu durumlar: Canlı yayınlar, sesli/görüntülü aramalar, online oyunlar, DNS sorguları|
+
+### Katman 5: Oturum Katmanı (Session Layer)
+
+İki sistem arasındaki iletişimin başlamasını, yönetilmesini ve güvenli şekilde sonlandırılmasını koordine eder.
+
+- **Oturum Yönetimi:** Cihazlar arasında benzersiz bir oturum (_session_) açar, veri akışı bitene kadar bu oturumu canlı tutar.
+    
+- **Zaman Aşımı ve Kapatma:** İletişim koptuğunda veya işlem bittiğinde oturumu kapatıp kaynakları serbest bırakır.
+    
+
+### Katman 6: Sunum Katmanı (Presentation Layer)
+
+Ağın **çevirmeni ve tercümanıdır**. Uygulama katmanının anlayacağı dil ile ağın anlayacağı biçim arasındaki dönüşümü sağlar.
+
+- **Veri Çevirisi (Formatlama):** Farklı işletim sistemleri arasındaki karakter kodlama farklarını (ASCII, UTF-8) çözer.
+    
+- **Şifreleme (Encryption / Decryption):** Güvenli veri trafiği için şifreleme ve şifre çözme işlemlerini (SSL/TLS) yönetir.
+    
+- **Sıkıştırma (Compression):** Ağ üzerinden iletilecek veriyi boyut olarak küçültür.
+    
+
+### Katman 7: Uygulama Katmanı (Application Layer)
+
+Kullanıcının doğrudan etkileşim kurduğu yazılımların ağ hizmetlerine eriştiği en üst katmandır.
+
+- **İşlevi:** Web tarayıcıları, e-posta istemcileri ve dosya yöneticileri gibi uygulamalara ağ servisleri sağlar.
+    
+- **Protokoller:** Web için **HTTP/HTTPS**, alan adı çözme için **DNS**, dosya aktarımı için **FTP**, posta erişimi için **IMAP/SMTP**.

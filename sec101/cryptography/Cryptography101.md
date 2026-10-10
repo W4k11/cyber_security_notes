@@ -1,43 +1,157 @@
-- **Plaintext** şifrelenmeden önceki veridir. resim, text, document gibi.
-- **Ciphertext** Şifrelemeden sonraki metindir
-- **Cipher** Düz metni şifreleme veya şifrelenmiş metni düz metne çevirmedir.
-- **Key** şifreleme veya şifre çözme için kullanılan bit dizisidir.
-- **Encryption** düz metni "cipher" veya "key" kullanarak şifreleme işlemidir.
-- **Decryption** "encryption" un tam tersidir.
+# Kriptografi Temelleri: Asimetrik Şifreleme, RSA, Diffie-Hellman ve GPG
 
-RSA
+## 1. Temel Kriptografi Terimleri
 
-RSA, büyük sayıların çarpanlarına ayrılmasının zorluğuna dayanarak, verileri şifrelemek için iki anahtar kullanan bir yöntemdir: biri kilitlemek (şifrelemek) diğeri ise kilidi açmak (şifreyi çözmek) içindir.
+- **Plaintext (Düz Metin):** Henüz şifrelenmemiş, herkes tarafından okunabilen orijinal veri (metin belgesi, görsel, ses kaydı, veritabanı yedeği vb.).
+    
+- **Ciphertext (Şifreli Metin):** Şifreleme algoritması uygulandıktan sonra anlamsız karakter yığınına dönüşen, ele geçirilse dahi okunamayan veri.
+    
+- **Cipher (Şifreleme Algoritması):** Düz metni şifreli metne dönüştüren ya da tam tersi işlemi yapan matematiksel adımlar bütünü.
+    
+- **Key (Anahtar):** Şifreleme ve şifre çözme süreçlerinde algoritmanın girdisi olarak kullanılan, yetkili tarafların elinde bulunan bit dizisi.
+    
+- **Encryption (Şifreleme):** Düz metni (Plaintext), bir algoritma (Cipher) ve anahtar (Key) kullanarak şifreli metne (Ciphertext) dönüştürme işlemi.
+    
+- **Decryption (Şifre Çözme):** Şifreli metni (Ciphertext) doğru anahtarı kullanarak tekrar orijinal düz metne (Plaintext) çevirme işlemi.
+    
 
-2 asal sayı girilir ve bunlar çarpılır.
+## 2. RSA Algoritması (Asimetrik Şifreleme)
 
-örn:
+RSA; çok büyük iki asal sayıyı çarpmanın son derece kolay, ancak ortaya çıkan devasa sonucu tekrar çarpanlarına ayırmanın (asal çarpanlara ayırma problemi) matematiksel olarak aşırı zor olmasına dayanan asimetrik bir şifreleme algoritmasıdır. Biri kilitlemek (**Public Key**), diğeri kilidi açmak (**Private Key**) için olmak üzere iki farklı anahtar çifti kullanır.
 
-1. Bob iki asal sayı seçiyor: p = 157 ve q = 199. n = p × q = 31243 diye hesaplıyor.
-2. ϕ(n) = n − p − q + 1 = 31243 − 157 − 199 + 1 = 30888 olduğundan, Bob, ϕ(n) ile aralarında asal olan e = 163'ü seçer; ayrıca, e × d = 1 mod ϕ(n) olacak şekilde d = 379'u seçer, yani e × d = 163 × 379 = 61777 ve 61777 mod 30888 = 1. Açık anahtar (n,e), yani (31243,163) ve özel anahtar (n,d), yani (31243,379)'dur.
-3. Şifrelemek istedikleri değerin x = 13 olduğunu varsayalım, o zaman Alice y = xe mod n = 13163 mod 31243 = 16341 değerini hesaplayıp gönderecektir.
-4. Bob, x = yd mod n = 16341379 mod 31243 = 13 işlemini yaparak alınan değeri şifresini çözecektir. Bu şekilde Bob, Alice'in gönderdiği değeri kurtarır.
+### Matematiksel Adımlar ve Örnek:
 
+1. **Asal Sayıların Seçimi:** Bob iki gizli asal sayı belirler:
+    
+    $$p = 157, \quad q = 199$$
+    
+    Modülüs değeri hesaplanır:
+    
+    $$n = p \times q = 157 \times 199 = 31243$$
+    
+2. **Euler Totient Fonksiyonu $\phi(n)$ ve Anahtar Çifti:**
+    
+    $$\phi(n) = (p - 1)(q - 1) = n - p - q + 1 = 31243 - 157 - 199 + 1 = 30888$$
+    
+    - Bob, $\phi(n)$ ile aralarında asal olacak bir açık üs seçer:
+        
+        $$e = 163$$
+        
+    - Bob, $e \times d \equiv 1 \pmod{\phi(n)}$ denkliğini sağlayan gizli üssü hesaplar:
+        
+        $$d = 379 \quad (163 \times 379 = 61777, \quad 61777 \pmod{30888} = 1)$$
+        
+    - **Açık Anahtar (Public Key):** $(n, e) = (31243, 163)$ _(Herkese açık ilan edilir)_
+        
+    - **Özel Anahtar (Private Key):** $(n, d) = (31243, 379)$ _(Yalnızca Bob'da kalır)_
+        
+3. **Şifreleme (Alice Veri Gönderiyor):**
+    
+    Alice göndermek istediği düz metin sayısını $x = 13$ olarak belirler ve Bob'un açık anahtarını kullanarak şifreler:
+    
+    $$y = x^e \pmod n = 13^{163} \pmod{31243} = 16341$$
+    
+    Alice şifreli metin olarak **$16341$** değerini hatta iletir.
+    
+4. **Şifre Çözme (Bob Mesajı Okuyor):**
+    
+    Bob gelen $y = 16341$ değerini kendi özel anahtarıyla ($d=379$) çözer:
+    
+    $$x = y^d \pmod n = 16341^{379} \pmod{31243} = 13$$
+    
+    Bob, aradaki hiç kimse şifreyi kıramadan orijinal veri olan **$13$** değerini elde eder.
+    
 
-### Diffie-Hellman Anahtar Değişimi
+## 3. Diffie-Hellman Anahtar Değişimi (Key Exchange)
 
-**Anahtar değişimi,** iki taraf arasında ortak bir gizli anahtar oluşturmayı amaçlar. Bu yöntem, iki tarafın önceden var olan ortak bir gizli anahtara ihtiyaç duymadan ve bir gözlemcinin bu anahtarı elde edememesi koşuluyla, güvenli olmayan bir iletişim kanalı üzerinden ortak bir gizli anahtar oluşturmasına olanak tanır. Sonuç olarak, bu ortak anahtar, sonraki iletişimlerde simetrik şifreleme için kullanılabilir.
+Diffie-Hellman, iki tarafın önceden ortak bir parolası olmasa bile, **güvenli olmayan açık bir hat üzerinden** dinleyicilere yakalanmadan ortak bir simetrik şifreleme anahtarı üretmesini sağlar.
 
-Şu senaryoyu ele alalım. Alice ve Bob güvenli bir şekilde iletişim kurmak istiyorlar. Simetrik şifreleme için ortak bir anahtar oluşturmak istiyorlar, ancak anahtar değişimi için asimetrik şifreleme kullanmak istemiyorlar. İşte burada Diffie-Hellman Anahtar Değişimi devreye giriyor.
+Plaintext
 
-Alice ve Bob birbirinden bağımsız olarak sırlar üretirler; bu sırlara A ve B diyelim. Ayrıca ortak, herkese açık bazı materyalleri de vardır; buna da C diyelim.
+```
+    Alice (Gizli: a)                            Bob (Gizli: b)
+           │                                           │
+           ├──────── Herkese Açık: Asal p, Taban g ────┤
+           │                                           │
+   A = g^a mod p                               B = g^b mod p
+           │                                           │
+           │ ──────────── Açık Değer A ──────────────► │
+           │ ◄─────────── Açık Değer B ─────────────── │
+           │                                           │
+ Ortak Anahtar:                              Ortak Anahtar:
+  K = B^a mod p                               K = A^b mod p
+  (K = g^(ab) mod p)                          (K = g^(ab) mod p)
+```
 
-Bazı varsayımlarda bulunmamız gerekiyor. Birincisi, sırları birleştirdiğimizde, onları ayırmak pratikte imkansızdır. İkincisi, birleştirilme sırası önemli değildir. Alice ve Bob, sırlarını ortak malzemeyle birleştirerek AC ve BC'yi oluşturacaklar. Daha sonra bunları birbirlerine gönderecekler ve aldıkları kısmı kendi sırlarıyla birleştirerek her ikisi de ABC olan iki özdeş anahtar oluşturacaklar. Artık bu anahtarı kullanarak iletişim kurabilirler.
+### Sayısal Örnek:
 
-Önceki paragrafları çok soyut bulduysanız, gelin süreci ayrıntılı olarak inceleyelim.
+1. **Açık Parametreler:** Alice ve Bob hatta herkesin görebileceği şu değerlerde anlaşır:
+    
+    $$p = 29 \quad (\text{Asal Sayı}), \quad g = 3 \quad (\text{Üreteç})$$
+    
+2. **Gizli Sayılar:** Taraflar kimseyle paylaşmayacakları özel sayılarını seçer:
+    
+    - Alice: $a = 13$
+        
+    - Bob: $b = 15$
+        
+3. **Açık Değerlerin Hesaplanması:**
+    
+    - Alice: $A = g^a \pmod p = 3^{13} \pmod{29} = 19$
+        
+    - Bob: $B = g^b \pmod p = 3^{15} \pmod{29} = 26$
+        
+4. **Anahtar Değişimi:** Alice hatta $19$ değerini, Bob ise $26$ değerini gönderir (Hattı dinleyen bir saldırgan sadece $19$ ve $26$'yı görür, gizli $a$ ve $b$'yi bilemez).
+    
+5. **Ortak Gizli Anahtarın Üretimi:**
+    
+    - Alice: $K = B^a \pmod p = 26^{13} \pmod{29} = \mathbf{10}$
+        
+    - Bob: $K = A^b \pmod p = 19^{15} \pmod{29} = \mathbf{10}$
+        
 
-1. Alice ve Bob, **kamuya açık değişkenler** konusunda anlaştılar : büyük bir asal sayı _p_ bir üreteç _g_ koşulunu sağlayan ve 0 < _g_ < _p_ değerlerini seçeceğiz . _p_ = 29 ve _g_ = 3 . Bu değerler iletişim kanalı üzerinden kamuya açık olarak açıklanacaktır. Güvenlik açısından küçük olsalar da, hesaplamalarımızı basitleştirmek için
-2. Her iki taraf da özel bir tamsayı seçer. Sayısal bir örnek olarak, Alice _a_ = 13'ü , Bob ise _b_ = 15'i seçer . Bu değerlerin her biri **özel bir anahtarı** temsil eder ve açıklanmamalıdır.
-3. hesaplama zamanı geldi. **genel anahtarlarını** Her iki tarafın da 2. adımda elde ettikleri özel anahtarlarını ve 1. adımda üzerinde anlaştıkları genel değişkenleri kullanarak _Alice, A_ = _g'yi hesaplıyor._ _A_ karşı _p_ = 3'e 13 mod 29 = 19 ve Bob _B_ = _g'yi hesaplıyor._ _B_ karşı _p_ = 3'e 15 mod 29 = 26. Bunlar açık anahtarlardır.
-4. Alice ve Bob birbirlerine anahtarları gönderirler. Bob _A_ = _g alır._ _A_ mod _p_ = 19 , yani Alice'in açık anahtarı. Ve Alice _B_ = _g'yi alır._ _B_ mod _p_ = 26 , yani Bob'un açık anahtarı. Bu adıma **anahtar değişimi** denir .
-5. hesaplayabilirler **nihayet ortak gizli anahtarı** Alice ve Bob, aldıkları açık anahtarı ve kendi özel anahtarlarını kullanarak _. Alice, B'yi hesaplar._ _A_ karşı _p_ = 26'ya 13 mod 29 = 10 ve Bob _A'yı hesaplıyor._ _B_ karşı _p_ = 19'a 15 mod 29 = 10. Her iki hesaplama da aynı sonucu verir, _g_ _a_ _b_ mod _p_ = 10 , paylaşılan gizli anahtar.
+Her iki taraf da kanaldan hiçbir parola iletmeden ortak anahtar olarak **$10$** değerine ulaştı. Artık AES gibi hızlı simetrik algoritmalarla bu anahtar üzerinden haberleşebilirler.
 
-gpg ile şifreleme yapılabilir aynı zamanda key üretip şifreyide çözebilriz.
+## 4. GPG (GnuPG) ile Pratik Şifreleme ve Anahtar Yönetimi
 
-- Kullanırdınız `gpg --import backup.key`Anahtarınızı backup.key dosyasından içe aktarmak için
-- Mesajlarınızın şifresini çözmek için bir komut vermeniz gerekiyor. `gpg --decrypt confidential_message.gpg`
+GPG, e-postaları, dosyaları ve hassas belgeleri asimetrik/simetrik olarak şifrelemek ve dijital imzalamak için kullanılan açık kaynaklı bir araçtır.
+
+### 1. Anahtar İçe Aktarma (Import)
+
+Daha önceden yedeklenmiş veya karşı taraftan alınmış bir anahtarı sisteme eklemek için:
+
+Bash
+
+```
+gpg --import backup.key
+```
+
+### 2. Şifreli Dosyayı Çözme (Decrypt)
+
+GPG ile şifrelenmiş `.gpg` uzantılı bir dosyanın şifresini çözüp ekrana veya yeni bir dosyaya basmak için:
+
+Bash
+
+```
+gpg --decrypt confidential_message.gpg
+```
+
+_(Çıktıyı doğrudan yeni bir dosyaya kaydetmek için: `gpg --decrypt confidential_message.gpg > cozulmus_metin.txt`)_
+
+### 3. Hızlı Şifreleme Komutları
+
+- **Simetrik Parola ile Şifreleme (Tek parola belirleyerek):**
+    
+    Bash
+    
+    ```
+    gpg -c gizli_belge.txt
+    ```
+    
+- **Bir Alıcının Açık Anahtarıyla Şifreleme:**
+    
+    Bash
+    
+    ```
+    gpg --encrypt --recipient alici@mail.com gizli_belge.txt
+    ```

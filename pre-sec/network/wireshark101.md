@@ -1,102 +1,100 @@
-Piyasada kullanılan en güçlü network analiz araçlarından biridir. 
-Not: Saldırı tespit aracı değildir.
+# Wireshark Ağ Analiz ve Paket İnceleme Rehberi
 
-Ağ sorunlarını bulur çözüm önerileri yapar.
-Güvenlikle alakalı anormallikleri tespit eder.
-Yanıt kodları ve veri yükü gibi protokol detaylarını araştırmak ve öğrenmek.
+## 1. Wireshark Nedir?
 
-|                                   |                                                                                                                                                                                                                 |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Toolbar**                       | filtreleme, sıralama, özetleme, dışa aktarma ve birleştirme dahil olmak üzere paket yakalama ve işleme için birden fazla menü ve kısayol içerir.                                                                |
-| **Display Filter Bar**            | Ana sorgulama ve filtreleme bölümü.                                                                                                                                                                             |
-| **Recent Files**                  | Son zamanlarda incelenen dosyaların listesi. Listelenen dosyaları çift tıklayarak geri çağırabilirsiniz.                                                                                                        |
-| **Capture Filter and Interfaces** | Yakalama filtreleri ve mevcut izleme noktaları (ağ arayüzleri). Ağ arayüzü, bir bilgisayar ile ağ arasındaki bağlantı noktasıdır. Yazılım bağlantısı (örneğin, lo, eth0 ve ens33), ağ donanımını etkinleştirir. |
-| **Status Bar**                    | Alet durumu, profil ve sayısal paket bilgileri.                                                                                                                                                                 |
+Wireshark, ağ trafiğini anlık yakalayan ve derinlemesine paket analizi sunan sektör standardı açık kaynaklı bir ağ analiz aracıdır.
 
-|                      |                                                                                                                                                                                                              |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Packet List Pane     | Her paketin özeti (kaynak ve hedef adresleri, protokol ve paket bilgileri). Daha detaylı incelemek için listeden bir paket seçebilirsiniz. Bir paket seçtiğinizde, ayrıntılar diğer panellerde görünecektir. |
-| Packet Details Panel | Seçilen paketin ayrıntılı protokol dökümü.                                                                                                                                                                   |
-| Packet Bytes Pane    | Seçilen paketin onaltılık ve çözümlenmiş ASCII gösterimi. Ayrıntılar bölmesinde tıklanan bölüme bağlı olarak paket alanını vurgular.                                                                         |
+- **Saldırı Tespit Sistemi (IDS/IPS) Değildir:** Trafiği otomatik olarak engellemez veya alarm üretmez; analiste ham veriyi inceleme imkânı sunar.
+    
+- **Kullanım Amaçları:**
+    
+    - Ağ tıkanıklıklarını, gecikmeleri ve iletişim kopukluklarını tespit etmek.
+        
+    - Şüpheli paketleri, olağan dışı bağlantıları ve güvenlik anormalliklerini araştırmak.
+        
+    - Protokollerin başlık alanlarını, durum kodlarını ve veri yüklerini (payload) incelemek.
+        
 
-Wireshark paketleri renklendirerek sorun ya da güvenlikle alakalı bir sorun olduğunda daha iyi görünmesi için renklendirir.
+## 2. Arayüz Bileşenleri (GUI Mimarisi)
 
-View ---> coloring rules
+|**Bölüm Adı**|**Konumu / Tanımı**|**Temel Görevi**|
+|---|---|---|
+|**Toolbar (Araç Çubuğu)**|En Üst Menü|Başlat, durdur, yeniden başlat, filtrele, kaydet ve birleştir işlevlerine hızlı erişim sağlar.|
+|**Display Filter Bar**|Üst Arama Çubuğu|Yakalanmış paketler üzerinde protokol, IP veya port bazlı filtreleme sorgularının yazıldığı alandır.|
+|**Recent Files**|Karşılama Ekranı|Daha önce incelenmiş olan `.pcap` / `.pcapng` dosyalarının hızlı erişim listesidir.|
+|**Capture Filter & Interfaces**|Ana Başlangıç Paneli|Dinlenecek ağ kartlarını (`eth0`, `ens33`, `lo`, Wi-Fi) seçer ve yakalama öncesi BPF filtreleri uygular.|
+|**Packet List Pane**|Üst Tablo Paneli|Yakalanan paketlerin sıra no, zaman, kaynak IP, hedef IP, protokol ve özet bilgilerini satır satır listeler.|
+|**Packet Details Panel**|Orta Ağaç Paneli|Seçilen tek bir paketin OSI katmanlarına (Katman 2'den 7'ye kadar) göre ayrıştırılmış başlık alanlarını açar.|
+|**Packet Bytes Pane**|Alt Ham Veri Paneli|Seçili paketin baytlarını sol tarafta HEX (onaltılık), sağ tarafta ise okunabilir ASCII formatında gösterir.|
+|**Status Bar**|En Alt Çubuk|Toplam paket sayısı, görüntülenen paket sayısı ve aktif profil bilgisini gösterir.|
 
-#### Traffic Sniffing:
-köpekbalığı yüzgeçine basarak trafiği izlemeye başlar kırmızı kareye basarak trafiği izlemeyi bırakır.
+## 3. Temel Operasyonel İşlemler
 
+- **Trafik Yakalamayı Başlatma / Durdurma:**
+    
+    - **Başlat:** Mavi köpekbalığı yüzgeci ikonuna tıklanır.
+        
+    - **Durdur:** Kırmızı kare ikonuna tıklanır.
+        
+- **PCAP Dosyalarını Birleştirme (Merge):** İki farklı analizi tek dosyada toplamak için `File -> Merge` yolu izlenir.
+    
+- **Dosya Özelliklerini İnceleme:** Trafiğin süresi, ortalama bant genişliği ve arayüz bilgisi için `Statistics -> Capture File Properties` sekmesi kullanılır.
+    
+- **Renklendirme Kuralları (Coloring Rules):** Hatalı veya şüpheli paketleri renklerle ayırt etmek için `View -> Coloring Rules` menüsü kullanılır.
+    
 
-#### Merge PCAP Files:
-file ---> merge basarak herhangi bir PCAP dosyasıyla seçtiğiniz diğer PCAP dosyalarını birleştirebilirsiniz.
+## 4. Paket Ayrıştırma (Packet Dissection) ve Detaylar
 
+Bir pakete tıklandığında **Packet Details** panelinde incelenebilen katman başlıkları:
 
-#### View File Details:
-Statistics ---> Capture File Proporties
+Plaintext
 
+```
+┌────────────────────────────────────────────────────────┐
+│ Frame / Packet      : Fiziksel katman boyutu ve zamanı │
+│ Source / Dest MAC   : Katman 2 (Ethernet) donanım adres│
+│ Source / Dest IP    : Katman 3 (IPv4 / IPv6) mantıksal │
+│ Protokol Detayları  : Katman 4 (TCP / UDP portları vb.)│
+│ Application Protocol: Katman 7 (HTTP, DNS, TLS vb.)    │
+│ Application Data    : Taşınan asıl içerik (Payload)    │
+└────────────────────────────────────────────────────────┘
+```
 
-#### Packet Dissection:
-Paket ayrıştırması, mevcut protokolleri ve alanları çözerek paket ayrıntılarını inceleyen bir yöntemdir ve protokol ayrıştırması olarak da bilinir.
+## 5. Pratik Analiz Kısayolları
 
+- **Numaraya Göre Pakete Gitme:** `Go -> Go to Packet...` (veya `Ctrl + G`).
+    
+- **Paket İçinde Arama:** `Edit -> Find Packet...` (veya `Ctrl + F`) ile metin, hex veya regex araması yapılır.
+    
+- **Paketi İşaretleme:** Seçili pakete `Sağ Tık -> Mark/Unmark Packet` (veya `Ctrl + M`).
+    
+- **Yorum Ekleme:** Ekip incelemeleri için `Sağ Tık -> Packet Comments -> Edit Packet Comment`.
+    
+- **Belirli Paketleri Dışa Aktarma:** Yalnızca filtrelenmiş veriyi kaydetmek için `File -> Export Specified Packets`.
+    
+- **Dosya Çıkarma (Export Objects):** Ağdan akan dosyaları (HTTP, SMB, TFTP vb.) disk üzerine kaydetmek için `File -> Export Objects -> [Protokol]`.
+    
+- **Zaman Biçimini Değiştirme:** `View -> Time Display Format` ile UTC saati, epoch veya yakalama anından itibaren geçen süre seçilebilir.
+    
+- **Stream Takibi ve Kelime Arama:** Paket üzerindeki oturum akışını düz metin görmek için `Sağ Tık -> Follow -> TCP Stream / HTTP Stream` seçilir, açılan penceredeki arama çubuğuyla anahtar kelimeler bulunur.
+    
 
-#### Packet Details:
-Çift tıklamayla paketin detaylarını görebiliriz. OSI'nin 5 ile 7 arasındaki katmanlarından oluşur.
+## 6. Uzman Bilgisi (Expert Info) Bildirim Seviyeleri
 
-frame/packet
-source [MAC]
-source [IP]
-protcols
-protocol errors
-application protocol
-application data
+Wireshark ağdaki anormallikleri otomatik tespit edip `Analyze -> Expert Info` sekmesinde 4 seviyede raporlar:
 
-bunlar gözükür.
+|**Önem Derecesi**|**Renk**|**Anlamı ve Kapsamı**|
+|---|---|---|
+|**Chat**|Mavi|Standart iş akış bilgileri (TCP bağlantı açılışı, kapanışı vb.).|
+|**Note**|Camgöbeği (Cyan)|Dikkat edilmesi gereken uygulama seviyesi durum bildirimleri veya HTTP kodları.|
+|**Warn**|Sarı|Normal dışı durumlar, yeniden iletimler (retransmissions) veya gecikme alarmları.|
+|**Error**|Kırmızı|Bozuk paketler, geçersiz sağlama toplamları (checksum error) ve kritik kesintiler.|
 
-#### Packet Numbers:
-No. Sütununun altındadır. Detaylarda Frame olarak yazar.
+## 7. Yakalama (Capture) vs. Görüntüleme (Display) Filtreleri
 
-#### Go to Packet:
-Herhangi bir Paketin numarasını girerek hızlıca bulmamızı sağlar.
-Go ---> Go to Packet...
+- **Capture Filters (Yakalama Filtreleri):** Trafik kaydedilmeden önce uygulanır. Diske yazılacak veriyi baştan sınırlar; sonradan geri döndürülemez. BPF formatı kullanır _(Örn: `host 192.168.1.1 and port 80`)_.
+    
+- **Display Filters (Görüntüleme Filtreleri):** Yakalanmış tüm verinin içerisinden sadece istenenleri ekranda göstermek için kullanılır. İstendiğinde kaldırılıp tüm trafik tekrar görülebilir _(Örn: `http.request.method == "POST"`)_.
+    
 
-#### Find Packets:
-Paketin içeriğine göre arama yapmak için "Edit ---> Find Packet"
-
-
-#### Mark Packets:
-Paketi işaretlemek "Sağ tık --> mark/unmark".
-
-#### Packet Comments:
-Paket yorumları details de gözükür ama "sağ tık Packet Comments ---> edit packet comments"
-
-#### Export Packets:
-Seçilen paketleri analiz etmek için paketleri dışarı çıkartır.
-File ---> Export Specified Packets
-
-#### Export Objects (Files):
-Ağ üzerinden aktarılan dosyaları çıkartabilir.
-
-#### Time Display:
-Zamana göre filtreleme ve sıralama.
-view ---> Time Display Format
-
-#### Expert Info:
-Analistlerin çıktıyı daha rahat okuyabilmeleri için bazı sorunları renklendirmişlerdir veya sınıflandırmışlardır.
-
-|              |            |                                                         |
-| ------------ | ---------- | ------------------------------------------------------- |
-| **Severity** | **Colour** | **Info**                                                |
-| **Chat**     | **Blue**   | Normal iş bilgileri.                                    |
-| **Note**     | **Cyan**   | Uygulama hata kodları.                                  |
-| **Warn**     | **Yellow** | Normalin dışındaki hata kodları veya sorun bildirimleri |
-| **Error**    | **Red**    | Hatalı paketler gibi sorunlar                           |
-
-#### Packet Filtering:
-Wireshark, analistlerin trafiği daraltmasına ve ilgilenilen olaya odaklanmasına yardımcı olan güçlü bir filtre motoruna sahiptir. Wireshark'ın iki tür filtreleme yaklaşımı vardır: yakalama ve görüntüleme filtreleri. Yakalama filtreleri, yalnızca kullanılan filtre için geçerli olan paketleri "yakalamak" için kullanılır. Görüntüleme filtreleri ise kullanılan filtre için geçerli olan paketleri "görüntülemek" için kullanılır.
-
-Filtreler, Wireshark'ın resmi protokol referansında bulunan protokoller için tasarlanmış özel sorgulardır. Filtreler yalnızca ilgilenilen olayı inceleme seçeneği olsa da, trafiği filtrelemenin ve yakalama dosyasındaki gürültüyü gidermenin iki farklı yolu vardır. Birincisi sorguları, ikincisi ise sağ tıklama menüsünü kullanır. Wireshark güçlü bir araç sunar ve temel görevler için sorgu yazmak istemeyen analistler için altın bir kural vardır: "Üzerine tıklayabiliyorsanız, filtreleyebilir ve kopyalayabilirsiniz."
-
-
-NOT:
-
-Bir pakette spesifik bir kelime aratmak için follow ---> html olarak seçip find dan bulabiliriz.
+> **Altın Kural:** Sorgu yazmakla uğraşmak istemiyorsanız, Packet Details bölmesinde incelediğiniz herhangi bir alanın üzerine gelin ve **`Sağ Tık -> Apply as Filter -> Selected`** seçeneğini kullanın.

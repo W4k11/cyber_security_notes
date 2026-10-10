@@ -1,14 +1,58 @@
+# İnternet Varlık Keşfi ve Zafiyet Yönetimi
 
-## SHODAN
-Bu motor, sunucuların, ağ ekipmanlarının, endüstriyel kontrol sistemlerinin ve cihazların belirli türlerini ve sürümlerini aramanıza olanak tanır.
+---
 
-örn:
-Kaç sunucunun hala 2.4.1 sürümünü çalıştırdığını ve ülkeler arası dağılımını görmek isteyebilirsiniz. Cevabı bulmak için, "apache 2.4.1" şeklinde arama yapabiliriz; bu, başlıklarında "2.4.1" dizesi bulunan sunucuların listesini döndürecektir.
+## 🌐 Arama ve İstihbarat Motorları
 
-## CENSYS
-Shodan'a benzer görünüyor. Ancak Shodan, sunucular, yönlendiriciler, web kameraları ve cihazlar gibi internete bağlı cihazlara ve sistemlere odaklanırken, Censys ise internete bağlı sunuculara, web sitelerine, sertifikalara ve diğer internet varlıklarına odaklanmaktadır. Kullanım alanlarından bazıları, kullanımda olan alan adlarını listelemek, açık portları ve hizmetleri denetlemek ve bir ağ içindeki kötü amaçlı varlıkları keşfetmektir.
-## VIRUSTOTAL
-birden fazla antivirüs motoru kullanarak dosyalar için virüs tarama hizmeti sağlayan çevrimiçi bir web sitesidir.
+### 1. Shodan
+İnternete bağlı **donanım ve sistem odaklı** bir arama motorudur. Sunucular, yönlendiriciler (routers), web kameraları, IoT cihazları ve Endüstriyel Kontrol Sistemleri (ICS/SCADA) gibi varlıkların başlık (banner) bilgilerini indeksler.
 
-### Vulnerabilities and Exploits
-Ortak Güvenlik Açıkları ve Maruz Kalma Programı'nı (CVE) bir güvenlik açığı sözlüğü olarak düşünebiliriz. Yazılım ve donanım ürünlerindeki güvenlik açıkları ve sorunları için standartlaştırılmış bir tanımlayıcı sağlar. Her güvenlik açığına, CVE-2024-29988 gibi standartlaştırılmış bir formatta bir kimlik atanır. Bu benzersiz tanımlayıcı (ID), güvenlik araştırmacılarından satıcılara ve BT uzmanlarına kadar herkesin aynı güvenlik açığına, bu durumda -2024-29988'e (yeni sekmede açılır) atıfta bulunmasını sağlar.
+> [!example] Örnek Kullanım
+> Hangi sunucuların belirli bir sürümü çalıştırdığını ve bu sistemlerin ülkelere göre dağılımını analiz etmek için:
+> ```text
+> apache 2.4.1
+> ```
+> *Bu sorgu, yanıt başlığında (HTTP banner) "2.4.1" geçen tüm Apache sunucularını listeler.*
+
+---
+
+### 2. Censys
+İnternete açık varlıkları tarayan bir platformdur; Shodan'a kıyasla daha çok **web siteleri, TLS/SSL sertifikaları, alan adları (domains) ve açık servis haritalandırmasına** odaklanır.
+
+- **Temel Kullanım Alanları:**
+  - Bir kuruluşa ait aktif alan adlarını ve alt alan adlarını (subdomains) çıkarma
+  - Açık port ve servisleri denetleme
+  - SSL/TLS sertifika kayıtları üzerinden altyapı korelasyonu yapma
+  - Ağ içerisindeki kötü amaçlı veya sahte (phishing) altyapıları keşfetme
+
+---
+
+### 3. Shodan vs. Censys Karşılaştırması
+
+| Kriter | Shodan | Censys |
+| :--- | :--- | :--- |
+| **Ana Odak** | IoT, ICS/SCADA, sunucular, ağ cihazları | Web varlıkları, TLS sertifikaları, domain/host ilişkileri |
+| **Veri Kaynağı** | Servis başlıkları (Service banners) | Sertifika şeffaflık günlükleri (CT logs), aktif taramalar |
+| **Yaygın Senaryo** | Açık IP kameralar, savunmasız servis sürümleri | Saldırı yüzeyi yönetimi (ASM), sertifika analizi |
+
+---
+
+## 🛡️ Dosya ve Tehdit Analizi
+
+### VirusTotal
+Şüpheli dosya, URL, IP adresi ve alan adlarını analiz etmek için **onlarca farklı antivirüs motorunu ve dinamik analiz aracını** eşzamanlı çalıştıran çevrimiçi bir tehdit istihbarat platformudur.
+
+- **Dosya Taraması:** Yüklenen dosyanın imzasını (hash) ve davranışını birden fazla güvenlik çözümüyle doğrular.
+- **Topluluk ve Sandbox:** Dosyanın bıraktığı ağ trafiği, açtığı kayıt defteri anahtarları ve güvenlik uzmanlarının paylaştığı yorumları içerir.
+
+---
+
+## ⚠️ Zafiyetler ve İstismarlar (Vulnerabilities & Exploits)
+
+### CVE (Common Vulnerabilities and Exposures)
+
+> [!info] Tanım
+> **CVE:** Yazılım ve donanım ürünlerinde tespit edilen kamusal güvenlik açıklarını standartlaştıran evrensel bir güvenlik açığı kataloğudur.
+
+* **Format Yapısı:** `CVE-YIL-NUMARA` (Örn: `CVE-2024-29988`)
+* **Amacı:** Güvenlik araştırmacıları, yazılım geliştiricileri ve sistem yöneticileri arasında ortak bir dil oluşturarak herkesin aynı zafiyete kesin olarak aynı kimlikle (`ID`) atıfta bulunmasını sağlar.

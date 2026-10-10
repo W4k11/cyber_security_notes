@@ -1,37 +1,105 @@
-Durumlu bir iletişim protokolüdür.
-tcp/ıp 4 katmandan oluşur ve OSI modeline çok benzer.
+# TCP/IP Modeli ve TCP Protokolü Derinlemesine İnceleme
 
-bu 4 katman:
-- uygulama
-- taşıma
-- internet
-- ağ arayüzü
+## 1. TCP/IP Modeli Nedir?
 
-Bu protokolü kullanan bir paketin, ağ üzerinden gönderilen verilere ek bilgi parçaları içeren bir dizi başlığı olacaktır:
+TCP/IP, günümüz internetinin ve modern bilgisayar ağlarının üzerinde çalıştığı pratik ve durumlu (**stateful**) iletişim protokolü yığınıdır. OSI referans modelinin 7 katmanını daha sade ve uygulanabilir **4 katmanda** birleştirir:
 
-- Time to Live: ağınızı tıkamasını önlemek için bir süre sonu zamanlayıcısı ayarlar!
-- Checksum: Bu alan,TCP/IP gibi protokoller için kontrol sağlar. Herhangi bir veri değiştirilirse, bu değer beklenenden farklı olacak ve dolayısıyla hatalı olacaktır.
-- Source Address: Paketin gönderildiği cihazın IP adresi, böylece verinin nereye geri döneceği bilinir.
-- Destination Address: Paketin gönderildiği cihazın IP adresi, böylece verinin bir sonraki adımda nereye gideceği bilinir.
-- Sequence Number: Bağlantı kurulduğunda, iletilen ilk veri parçasına rastgele bir sayı atanır.
-- Acknowledgement Number: Bir veri parçasına sıra numarası verildikten sonra, bir sonraki veri parçasının numarası, sıra numarası + 1 olacaktır.
-- Checksum: Bu değer tcp bütünlüğünü veren değerdir.
-- Data: Verinin baytları burda saklanır.
-- Flag: el sıkışma işlemi sırasında paketin her iki cihaz tarafından nasıl işlenmesi gerektiğini belirler.
+Plaintext
 
-3 yönlü handshake adım adım:
+```
+  OSI Modeli (7 Katman)                  TCP/IP Modeli (4 Katman)
+ ┌──────────────────────┐               ┌──────────────────────┐
+ │ Katman 7: Uygulama   │               │                      │
+ │ Katman 6: Sunum      │ ────────────► │ Katman 4: Uygulama   │
+ │ Katman 5: Oturum     │               │                      │
+ ├──────────────────────┤               ├──────────────────────┤
+ │ Katman 4: Taşıma     │ ────────────► │ Katman 3: Taşıma     │
+ ├──────────────────────┤               ├──────────────────────┤
+ │ Katman 3: Ağ         │ ────────────► │ Katman 2: İnternet   │
+ ├──────────────────────┤               ├──────────────────────┤
+ │ Katman 2: Veri Bağl. │ ────────────► │ Katman 1: Ağ         │
+ │ Katman 1: Fiziksel   │               │ Arayüzü              │
+ └──────────────────────┘               └──────────────────────┘
+```
 
-1. SYN: handshake için ilk gönderilen pakettir. 2 cihazı senkronize etmek için kullanılır.
-2. SYN/ACK: Senkronizasyonu onaylamak için karşıdan gelen mesajdır.
-3. ACK: her iki taraftada kullanılır. Onay Paketidir.
-4. DATA: dosya baytları bu mesaj ile gönderilir.
-5. FIN: Bağlantıyı sonlandırmak için kullanılan pakettir.
-#.RST: Bu paket bağlantıyı aniden sonlandırmak için var.
+- **Uygulama Katmanı (Application):** Kullanıcının gördüğü servisler ve protokoller (HTTP, DNS, SSH, FTP, SMTP).
+    
+- **Taşıma Katmanı (Transport):** Uçtan uca güvenilir veya hızlı veri akışını yöneten katman (TCP, UDP).
+    
+- **İnternet Katmanı (Internet):** Mantıksal adresleme ve paket yönlendirmesini yapan katman (IP, ICMP, ARP).
+    
+- **Ağ Arayüzü Katmanı (Network Access / Link):** Fiziksel kablolar, Wi-Fi sinyalleri, Ethernet çerçeveleri ve MAC adresleri.
+    
 
+## 2. TCP Segment ve IP Paket Başlıkları
 
+İletişim sırasında veriye hem ağ katmanında (IP) hem de taşıma katmanında (TCP) kritik kontrol başlıkları eklenir:
 
-Bağlantı başlatmak için:
-örn: syn -> syn/ack -> ack
+|**Alan**|**Hangi Katmanda?**|**Ne İşe Yarar?**|
+|---|---|---|
+|**Source / Destination IP**|IP (İnternet)|Paketin çıktığı kaynak cihazı ve ulaşacağı hedef adresi tanımlar.|
+|**TTL (Time to Live)**|IP (İnternet)|Paketin sonsuz döngüye girmesini önleyen router atlama sayacıdır (her durakta 1 düşer).|
+|**Source / Destination Port**|TCP (Taşıma)|Paketin hangi uygulamaya veya servise (80, 22, 443 vb.) ait olduğunu gösterir.|
+|**Sequence Number (Sıra No)**|TCP (Taşıma)|İlk bağlantıda rastgele (ISN) üretilir; paketlerin alıcı tarafta doğru sırayla birleştirilmesini sağlar.|
+|**Acknowledgment No (ACK No)**|TCP (Taşıma)|Alıcının bir sonraki adımda beklediği bayt numarasını gösterir (`Alınan Sıra No + 1`).|
+|**Flags (Bayraklar)**|TCP (Taşıma)|Paketin türünü ve bağlantının durumunu belirler (SYN, ACK, FIN, RST, PSH, URG).|
+|**Checksum (Kontrol Toplamı)**|TCP & IP|Verinin yolda bozulup bozulmadığını kontrol eden matematiksel özet/bütünlük alanıdır.|
+|**Data (Payload)**|TCP (Taşıma)|Taşınan asıl ham verinin baytlarıdır.|
 
-Bağlantıyı sonlandırmak için:
-örn: fın -> ack -> fın -> ack
+## 3. TCP Üç Yönlü El Sıkışma (Three-Way Handshake)
+
+TCP "durumlu" bir protokol olduğu için rastgele veri yollamaz; önce istemci ile sunucu arasında güvenli bir hat kurulur:
+
+Plaintext
+
+```
+      İSTEMCİ (Client)                                   SUNUCU (Server)
+             │                                                  │
+             │ ──────── 1. SYN (Seq=X) ───────────────────────► │
+             │                                                  │
+             │ ◄─────── 2. SYN/ACK (Seq=Y, Ack=X+1) ─────────── │
+             │                                                  │
+             │ ──────── 3. ACK (Seq=X+1, Ack=Y+1) ────────────► │
+             │                                                  │
+             ├──────────────── BAĞLANTI KURULDU ────────────────┤
+             │                                                  │
+             │ ════════ 4. DATA (Veri Aktarımı Başlar) ═══════► │
+```
+
+1. **Adım (SYN):** İstemci, sunucuya bir senkronizasyon isteği gönderir ve kendi başlangıç sıra numarasını (`Seq=X`) bildirir:
+    
+    > _"Seninle konuşmak istiyorum, başlangıç numaram X."_
+    
+2. **Adım (SYN-ACK):** Sunucu isteği kabul eder, istemcinin numarasını onaylar (`Ack=X+1`) ve kendi sıra numarasını iletir (`Seq=Y`):
+    
+    > _"İsteğini aldım (X+1 bekliyorum), ben de seninle konuşmaya hazırım, benim numaram Y."_
+    
+3. **Adım (ACK):** İstemci sunucunun yanıtını onaylar (`Ack=Y+1`):
+    
+    > _"Senin numaranı da aldım (Y+1 bekliyorum). Bağlantı hazır!"_
+    
+4. **Veri Aktarımı (DATA):** Karşılıklı anlaşma sağlandıktan sonra asıl dosya ve veri baytları iletilmeye başlar.
+    
+
+## 4. Bağlantıyı Sonlandırma Süreci: FIN vs. RST
+
+TCP oturumu tamamlandığında iki farklı senaryoyla kapatılabilir:
+
+### A) Normal Kapatma (Four-Way Handshake - FIN / ACK)
+
+İki tarafın da gönderecek verisi bittiğinde bağlantı nezaket kurallarıyla, 4 adımda temiz şekilde sonlandırılır:
+
+Plaintext
+
+```
+İstemci ──► FIN (Gönderecek verim bitti)        ──► Sunucu
+İstemci ◄── ACK (Anlaşıldı, aldım)              ◄── Sunucu
+İstemci ◄── FIN (Benim de gönderecek verim bitti) ◄── Sunucu
+İstemci ──► ACK (Tamamdır, güle güle)           ──► Sunucu
+```
+
+### B) Aniden Kapatma (RST - Reset Bayrağı)
+
+- Normal kapanma adımlarını beklemeden **bağlantıyı anında koparmak** için kullanılır.
+    
+- Port kapalıysa, beklenmeyen bir paket geldiyse veya bir güvenlik duvarı bağlantıyı zorla kesmek istiyorsa karşı tarafa `RST` bayraklı paket gönderilir ve oturum tek hamlede düşürülür.
